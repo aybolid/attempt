@@ -1,4 +1,6 @@
+/** Contains either an {@link Ok} value or an {@link Err} value. */
 export type Result<T, E = Error> = Ok<T> | Err<E>;
+/** Same as {@link Result}, but wrapped in a {@link Promise} */
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
 export interface ResultLike<T, E> {
@@ -68,6 +70,31 @@ export function ok<T>(value: T): Ok<T> {
  */
 export function err<E>(error: E): Err<E> {
   return new Err(error);
+}
+
+/**
+ * Returns a {@link Result<T, Error>}.
+ *
+ * If the function throws, returns an {@link Err<Error>}; otherwise, returns an {@link Ok<T>}.
+ */
+export function attempt<T>(fn: () => T): Result<T> {
+  try {
+    return ok(fn());
+  } catch (error) {
+    return err(error instanceof Error ? error : Error(String(error)));
+  }
+}
+
+/** Return an {@link AsyncResult<T, Error>}
+ *
+ * If the function throws, returns an {@link Err<Error>}; otherwise, returns an {@link Ok<T>}.
+ */
+export async function attemptAsync<T>(fn: () => Promise<T>): AsyncResult<T> {
+  try {
+    return ok(await fn());
+  } catch (error) {
+    return err(error instanceof Error ? error : Error(String(error)));
+  }
 }
 
 export class Ok<T> implements ResultLike<T, never> {
