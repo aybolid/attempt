@@ -8,20 +8,16 @@ async function safeFetch(url: string): AsyncResult<Response> {
   });
 }
 
-async function run() {
-  const codes = [202, 400, 204, 505];
+const codes = [202, 400, 204, 500, 418, 301];
 
-  for (const code of codes) {
-    const url = `https://mock.httpstatus.io/${code}`;
-    const result = await safeFetch(url);
+for (const code of codes) {
+  const url = `https://mock.httpstatus.io/${code}`;
+  const result = await safeFetch(url);
 
-    if (result.isOk()) {
-      const res = result.unwrap();
-      console.log(`${res.status} ${res.statusText} <- ${url}`);
-    } else {
-      console.error(`Failed (${url}): ${result.unwrapErr().message}`);
-    }
+  if (result.isOk()) {
+    const res = result.unwrap();
+    console.log(`${res.status} ${res.statusText} <- ${url}`);
+  } else {
+    console.error(`Failed (${url}): ${result.unwrapErr().message}`);
   }
 }
-
-run();

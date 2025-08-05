@@ -132,7 +132,7 @@ export function attempt<T>(fn: () => T): Result<T> {
   }
 }
 
-/** Return an {@link AsyncResult<T, Error>}
+/** Returns an {@link AsyncResult<T, Error>}
  *
  * If the function throws, returns an {@link Err<Error>}; otherwise, returns an {@link Ok<T>}.
  */
