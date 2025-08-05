@@ -3,7 +3,7 @@ import { attemptAsync, type AsyncResult } from "..";
 async function safeFetch(url: string): AsyncResult<Response> {
   return attemptAsync(async () => {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw `HTTP Error: ${res.status} ${res.statusText}`; // attemptAsync contructs error
     return res;
   });
 }
