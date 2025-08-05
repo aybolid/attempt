@@ -69,6 +69,14 @@ export interface ResultLike<T, E> {
    */
   mapErr<F>(fn: (errorValue: E) => F): ResultLike<T, F>;
 
+  /** Transposes an {@link Ok} value. Noop if called on {@link Err} value.
+   *
+   * If {@link Ok} contains a non-null value, returns same reference.
+   *
+   * `Result<T | null | undefined, E>` -> `Result<T, E> | null`
+   */
+  transpose(): ResultLike<NonNullable<T>, E> | null;
+
   /** Returns a string representation of the result. */
   toString(): string;
 }
@@ -175,6 +183,12 @@ export class Ok<T> implements ResultLike<T, never> {
     return this;
   }
 
+  transpose(): Ok<NonNullable<T>> | null {
+    return this.#value === null || this.#value === undefined
+      ? null
+      : (this as Ok<NonNullable<T>>);
+  }
+
   toString(): string {
     // TODO: should use JSON.stringify?
     return `${Ok._tag}(${this.#value})`;
@@ -240,6 +254,10 @@ export class Err<E> implements ResultLike<never, E> {
 
   mapErr<F>(fn: (error: E) => F): Err<F> {
     return new Err(fn(this.#value));
+  }
+
+  transpose(): Err<E> {
+    return this;
   }
 
   toString(): string {

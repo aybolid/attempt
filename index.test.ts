@@ -152,6 +152,27 @@ describe(`${Ok.name} and ${Err.name}`, () => {
       const mapped = result.mapErr((error) => error + 222);
       expect(mapped.err()).toBe(322);
     });
+
+    test(`${Ok.name}.${Ok.prototype.transpose.name}() should return null if contained value is null`, () => {
+      const result = ok(null);
+      const transposed = result.transpose();
+      expect(transposed).toBeNull();
+    });
+    test(`${Ok.name}.${Ok.prototype.transpose.name}() should return null if contained value is undefined`, () => {
+      const result = ok(undefined);
+      const transposed = result.transpose();
+      expect(transposed).toBeNull();
+    });
+    test(`${Ok.name}.${Ok.prototype.transpose.name}() should be noop if contained value isnt null or undefined`, () => {
+      const result = ok(13);
+      const transposed = result.transpose();
+      expect(transposed, "should be the same reference").toBe(result);
+    });
+    test(`${Err.name}.${Err.prototype.transpose.name}() should be noop and return the same reference`, () => {
+      const result = err("error");
+      const transposed = result.transpose();
+      expect(transposed, "should be the same reference").toBe(result);
+    });
   });
 
   describe("Utils", () => {
