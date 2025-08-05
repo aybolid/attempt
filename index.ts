@@ -9,6 +9,11 @@ export interface ResultLike<T, E> {
   /** Returns `true` if the result is an {@link Err} value. */
   isErr(): this is Err<E>;
 
+  /** Returns `true` if the result is {@link Ok} and the value inside of it matches a predicate. */
+  isOkAnd(predicate: (value: T) => boolean): boolean;
+  /** Returns `true` if the result is {@link Err} and the error value inside of it matches a predicate. */
+  isErrAnd(predicate: (value: E) => boolean): boolean;
+
   /** Returns the contained {@link Ok} value.
    *
    * If called on {@link Err} value, returns `null`.
@@ -114,6 +119,14 @@ export class Ok<T> implements ResultLike<T, never> {
     return true;
   }
 
+  isOkAnd(predicate: (value: T) => boolean): boolean {
+    return predicate(this.#value);
+  }
+
+  isErrAnd(_predicate: (value: never) => boolean): boolean {
+    return false;
+  }
+
   ok(): T {
     return this.#value;
   }
@@ -163,6 +176,14 @@ export class Err<E> implements ResultLike<never, E> {
 
   isOk(): this is Ok<never> {
     return false;
+  }
+
+  isOkAnd(_predicate: (value: never) => boolean): boolean {
+    return false;
+  }
+
+  isErrAnd(predicate: (value: E) => boolean): boolean {
+    return predicate(this.#value);
   }
 
   ok(): null {

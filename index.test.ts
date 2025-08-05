@@ -31,6 +31,30 @@ describe(`${Ok.name} and ${Err.name}`, () => {
       const result = err("error");
       expect(result.isErr()).toBe(true);
     });
+
+    test(`${Ok.name}.${Ok.prototype.isOkAnd.name}() should return predicate boolean result`, () => {
+      const result = ok(20);
+      expect(result.isOkAnd((n) => n > 0)).toBe(true);
+      expect(result.isOkAnd((n) => n > 100)).toBe(false);
+    });
+    test(`${Ok.name}.${Ok.prototype.isErrAnd.name}() should return false and predicate should be noop`, () => {
+      const result = ok(20);
+      const predicate = vi.fn();
+      expect(result.isErrAnd(predicate)).toBe(false);
+      expect(predicate).not.toBeCalled();
+    });
+
+    test(`${Err.name}.${Err.prototype.isErrAnd.name}() should return predicate boolean result`, () => {
+      const result = err("error");
+      expect(result.isErrAnd((e) => e === "error")).toBe(true);
+      expect(result.isErrAnd((e) => e === "another error")).toBe(false);
+    });
+    test(`${Err.name}.${Err.prototype.isOkAnd.name}() should return false and predicate should be noop`, () => {
+      const result = err("error");
+      const predicate = vi.fn();
+      expect(result.isOkAnd(predicate)).toBe(false);
+      expect(predicate).not.toBeCalled();
+    });
   });
 
   describe("Access", () => {
