@@ -200,6 +200,33 @@ describe(`${Ok.name} and ${Err.name}`, () => {
       expect(anded, "should be the same reference").toBe(result);
       expect(other).not.toBeCalled();
     });
+
+    test(`${Ok.name}.${Ok.prototype.or.name}() should be noop and return the same reference to ${Ok.name}`, () => {
+      const result = ok(13);
+      const other = ok(42);
+      const ored = result.or(other);
+      expect(ored, "should be the same reference").toBe(result);
+    });
+    test(`${Err.name}.${Err.prototype.or.name}() should return provided other result`, () => {
+      const result = err(13);
+      const other = ok(42);
+      const ored = result.or(other);
+      expect(ored, "should be the same reference").toBe(other);
+    });
+
+    test(`${Ok.name}.${Ok.prototype.orElse.name}() should be noop and return the same reference to ${Ok.name}`, () => {
+      const result = ok(13);
+      const other = vi.fn();
+      const ored = result.orElse(other);
+      expect(ored, "should be the same reference").toBe(result);
+      expect(other).not.toBeCalled();
+    });
+    test(`${Err.name}.${Err.prototype.orElse.name}() should return result of provided fn`, () => {
+      const result = err(13);
+      const other = ok(233);
+      const ored = result.orElse(() => other);
+      expect(ored, "should be the same reference").toBe(other);
+    });
   });
 
   describe("Utils", () => {

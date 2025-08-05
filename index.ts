@@ -74,12 +74,22 @@ interface ResultLike<T, E> {
    * For lazy evaluation, use {@link andThen}.
    */
   and<U>(other: Result<U, E>): Result<U, E>;
-
   /** Returns result from the provided function if called on {@link Ok}. If called on {@link Err} value, returns same reference, noop.
    *
    * For eager evaluation, use {@link and}.
    */
   andThen<U>(fn: (value: T) => Result<U, E>): Result<U, E>;
+
+  /** Returns `other` if called on {@link Err}. If called on {@link Ok} value, returns same reference, noop.
+   *
+   * For lazy evaluation, use {@link orElse}.
+   */
+  or<F>(other: Result<T, F>): Result<T, F>;
+  /** Returns result from the provided function if called on {@link Err}. If called on {@link Ok} value, returns same reference, noop.
+   *
+   * For eager evaluation, use {@link or}.
+   */
+  orElse<F>(fn: (errorValue: E) => Result<T, F>): Result<T, F>;
 
   /** Transposes an {@link Ok} value. Noop if called on {@link Err} value.
    *
@@ -203,6 +213,14 @@ export class Ok<T> implements ResultLike<T, never> {
     return fn(this.#value);
   }
 
+  or<F>(_other: Result<T, F>): Result<T, F> {
+    return this;
+  }
+
+  orElse<F>(_fn: (errorValue: never) => Result<T, F>): Result<T, F> {
+    return this;
+  }
+
   transpose(): Ok<NonNullable<T>> | null {
     return this.#value === null || this.#value === undefined
       ? null
@@ -282,6 +300,14 @@ export class Err<E> implements ResultLike<never, E> {
 
   andThen<U>(_fn: (value: never) => Result<U, E>): Result<U, E> {
     return this;
+  }
+
+  or<T, F>(other: Result<T, F>): Result<T, F> {
+    return other;
+  }
+
+  orElse<T, F>(fn: (errorValue: E) => Result<T, F>): Result<T, F> {
+    return fn(this.#value);
   }
 
   transpose(): Err<E> {
