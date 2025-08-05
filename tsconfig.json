@@ -7,9 +7,10 @@
     "allowJs": true,
 
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "dist",
 
     "strict": true,
     "skipLibCheck": true,
@@ -18,5 +19,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": true
-  }
+  },
+  "exclude": [
+    "dist",
+    "**/*.test.ts",
+  ]
 }
