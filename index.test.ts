@@ -113,6 +113,17 @@ describe(`${Ok.name} and ${Err.name}`, () => {
       const result = err(228);
       expect(result.err()).toBe(228);
     });
+
+    test(`${Ok.name}.${Ok.prototype.expectErr.name}() should throw an ${Error.name} with provided message and value as string`, () => {
+      const result = ok(13);
+      expect(() => result.expectErr("I want this to throw")).toThrow(
+        "I want this to throw: 13",
+      );
+    });
+    test(`${Err.name}.${Err.prototype.expectErr.name}() should return contained error value`, () => {
+      const result = err(13);
+      expect(result.expectErr("noop message")).toBe(13);
+    });
   });
 
   describe("Transform", () => {

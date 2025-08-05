@@ -49,6 +49,12 @@ export interface ResultLike<T, E> {
    * If called on {@link Err} value, returns the result of the provided function.
    */
   unwrapOrElse(defaultValueFn: (error: E) => T): T;
+  /** Returns the contained error value.
+   *
+   * If called on {@link Ok} value, throws an {@link Error}, constructed with the provided message.
+   * If called on {@link Err} value, returns the contained error value.
+   */
+  expectErr(message: string): E;
 
   /** Maps the contained value using the provided function.
    *
@@ -157,6 +163,10 @@ export class Ok<T> implements ResultLike<T, never> {
     return this.#value;
   }
 
+  expectErr(message: string): never {
+    throw Error(`${message}: ${this.#value}`);
+  }
+
   map<U>(fn: (value: T) => U): Ok<U> {
     return new Ok(fn(this.#value));
   }
@@ -167,7 +177,7 @@ export class Ok<T> implements ResultLike<T, never> {
 
   toString(): string {
     // TODO: should use JSON.stringify?
-    return `${Ok._tag}(${String(this.#value)})`;
+    return `${Ok._tag}(${this.#value})`;
   }
 }
 
@@ -220,6 +230,10 @@ export class Err<E> implements ResultLike<never, E> {
     return defaultValueFn(this.#value);
   }
 
+  expectErr(_message: string): E {
+    return this.#value;
+  }
+
   map<U>(_fn: (value: never) => U): Err<E> {
     return this;
   }
@@ -230,6 +244,6 @@ export class Err<E> implements ResultLike<never, E> {
 
   toString(): string {
     // TODO: should use JSON.stringify?
-    return `${Err._tag}(${String(this.#value)})`;
+    return `${Err._tag}(${this.#value})`;
   }
 }
