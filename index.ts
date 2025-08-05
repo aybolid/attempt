@@ -3,7 +3,7 @@ export type Result<T, E = Error> = Ok<T> | Err<E>;
 /** Same as {@link Result}, but wrapped in a {@link Promise} */
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
-export interface ResultLike<T, E> {
+interface ResultLike<T, E> {
   /** Returns `true` if the result is an {@link Ok} value. */
   isOk(): this is Ok<T>;
   /** Returns `true` if the result is an {@link Err} value. */
@@ -61,13 +61,25 @@ export interface ResultLike<T, E> {
    * If called on {@link Ok} value, returns a new `Ok` result with the mapped value.
    * If called on {@link Err} value - returns same reference, noop.
    */
-  map<U>(fn: (value: T) => U): ResultLike<U, E>;
+  map<U>(fn: (value: T) => U): Result<U, E>;
   /** Maps the contained error using the provided function.
    *
    * If called on {@link Err} value, returns a new `Err` result with the mapped error.
    * If called on {@link Ok} value - return same reference, noop.
    */
-  mapErr<F>(fn: (errorValue: E) => F): ResultLike<T, F>;
+  mapErr<F>(fn: (errorValue: E) => F): Result<T, F>;
+
+  /** Returns `other` if called on {@link Ok}. If called on {@link Err} value, returns same reference, noop.
+   *
+   * For lazy evaluation, use {@link andThen}.
+   */
+  and<U>(other: Result<U, E>): Result<U, E>;
+
+  /** Returns result from the provided function if called on {@link Ok}. If called on {@link Err} value, returns same reference, noop.
+   *
+   * For eager evaluation, use {@link and}.
+   */
+  andThen<U>(fn: (value: T) => Result<U, E>): Result<U, E>;
 
   /** Transposes an {@link Ok} value. Noop if called on {@link Err} value.
    *
@@ -75,7 +87,7 @@ export interface ResultLike<T, E> {
    *
    * `Result<T | null | undefined, E>` -> `Result<T, E> | null`
    */
-  transpose(): ResultLike<NonNullable<T>, E> | null;
+  transpose(): Result<NonNullable<T>, E> | null;
 
   /** Returns a string representation of the result. */
   toString(): string;
@@ -183,6 +195,14 @@ export class Ok<T> implements ResultLike<T, never> {
     return this;
   }
 
+  and<U, F>(other: Result<U, F>): Result<U, F> {
+    return other;
+  }
+
+  andThen<U, F>(fn: (value: T) => Result<U, F>): Result<U, F> {
+    return fn(this.#value);
+  }
+
   transpose(): Ok<NonNullable<T>> | null {
     return this.#value === null || this.#value === undefined
       ? null
@@ -254,6 +274,14 @@ export class Err<E> implements ResultLike<never, E> {
 
   mapErr<F>(fn: (error: E) => F): Err<F> {
     return new Err(fn(this.#value));
+  }
+
+  and<U>(_other: Result<U, E>): Result<U, E> {
+    return this;
+  }
+
+  andThen<U>(_fn: (value: never) => Result<U, E>): Result<U, E> {
+    return this;
   }
 
   transpose(): Err<E> {

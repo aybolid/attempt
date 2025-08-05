@@ -173,6 +173,33 @@ describe(`${Ok.name} and ${Err.name}`, () => {
       const transposed = result.transpose();
       expect(transposed, "should be the same reference").toBe(result);
     });
+
+    test(`${Ok.name}.${Ok.prototype.and.name}() should return provided other result`, () => {
+      const result = ok(13);
+      const other = ok(42);
+      const anded = result.and(other);
+      expect(anded, "should be the same reference").toBe(other);
+    });
+    test(`${Err.name}.${Err.prototype.and.name}() should be noop and return the same reference to ${Err.name}`, () => {
+      const result = err(13);
+      const other = ok(42);
+      const anded = result.and(other);
+      expect(anded, "should be the same reference").toBe(result);
+    });
+
+    test(`${Ok.name}.${Ok.prototype.andThen.name}() should return result of provided fn`, () => {
+      const result = ok(13);
+      const other = ok(42);
+      const anded = result.andThen(() => other);
+      expect(anded, "should be the same reference").toBe(other);
+    });
+    test(`${Err.name}.${Err.prototype.andThen.name}() should be noop and return the same reference to ${Err.name}`, () => {
+      const result = err(13);
+      const other = vi.fn();
+      const anded = result.andThen(other);
+      expect(anded, "should be the same reference").toBe(result);
+      expect(other).not.toBeCalled();
+    });
   });
 
   describe("Utils", () => {
