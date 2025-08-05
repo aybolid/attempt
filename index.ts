@@ -33,6 +33,12 @@ export interface ResultLike<T, E> {
   unwrap(): T;
   /** Unwraps the result.
    *
+   * If called on {@link Err} value, returns the contained error value.
+   * If called on {@link Ok} value, throws the contained value.
+   */
+  unwrapErr(): E;
+  /** Unwraps the result.
+   *
    * If called on {@link Ok} value, returns the contained value.
    * If called on {@link Err} value, returns the provided default value.
    */
@@ -139,6 +145,10 @@ export class Ok<T> implements ResultLike<T, never> {
     return this.#value;
   }
 
+  unwrapErr(): never {
+    throw this.#value;
+  }
+
   unwrapOr(_defaultValue: T): T {
     return this.#value;
   }
@@ -147,11 +157,11 @@ export class Ok<T> implements ResultLike<T, never> {
     return this.#value;
   }
 
-  map<U>(fn: (value: T) => U): ResultLike<U, never> {
+  map<U>(fn: (value: T) => U): Ok<U> {
     return new Ok(fn(this.#value));
   }
 
-  mapErr<F>(_fn: (errorValue: never) => F): ResultLike<T, F> {
+  mapErr<F>(_fn: (errorValue: never) => F): Ok<T> {
     return this;
   }
 
@@ -198,6 +208,10 @@ export class Err<E> implements ResultLike<never, E> {
     throw this.#value;
   }
 
+  unwrapErr(): E {
+    return this.#value;
+  }
+
   unwrapOr<T>(defaultValue: T): T {
     return defaultValue;
   }
@@ -206,11 +220,11 @@ export class Err<E> implements ResultLike<never, E> {
     return defaultValueFn(this.#value);
   }
 
-  map<U>(_fn: (value: never) => U): ResultLike<U, E> {
+  map<U>(_fn: (value: never) => U): Err<E> {
     return this;
   }
 
-  mapErr<F>(fn: (error: E) => F): ResultLike<never, F> {
+  mapErr<F>(fn: (error: E) => F): Err<F> {
     return new Err(fn(this.#value));
   }
 

@@ -67,6 +67,15 @@ describe(`${Ok.name} and ${Err.name}`, () => {
       expect(() => result.unwrap()).toThrow("error");
     });
 
+    test(`${Err.name}.${Err.prototype.unwrapErr.name}() should return contained error value`, () => {
+      const result = err("error");
+      expect(result.unwrapErr()).toBe("error");
+    });
+    test(`${Ok.name}.${Ok.prototype.unwrapErr.name}() should throw contained value`, () => {
+      const result = ok("ok");
+      expect(() => result.unwrapErr()).toThrow("ok");
+    });
+
     test(`${Ok.name}.${Ok.prototype.unwrapOr.name}() should return contained value`, () => {
       const result = ok(69420);
       expect(result.unwrapOr(42)).toBe(69420);
