@@ -3,10 +3,12 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@vitest/coverage-v8": "3.2.4",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
