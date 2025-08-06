@@ -7,10 +7,10 @@
  *
  * @see {@link ok}, {@link err}
  */
-type Result<OkValue, ErrValue = Error> = Ok<OkValue> | Err<ErrValue>;
+export type Result<OkValue, ErrValue = Error> = Ok<OkValue> | Err<ErrValue>;
 
 /** Same as {@link Result}, but wrapped in a {@link Promise}. */
-type AsyncResult<OkValue, ErrValue = Error> = Promise<
+export type AsyncResult<OkValue, ErrValue = Error> = Promise<
   Result<OkValue, ErrValue>
 >;
 
@@ -135,7 +135,7 @@ interface ResultLike<OkValue, ErrValue> {
  * const result = ok(42);
  * console.log(result instanceof Ok); // true
  */
-function ok<OkValue>(value: OkValue): Ok<OkValue> {
+export function ok<OkValue>(value: OkValue): Ok<OkValue> {
   return new Ok(value);
 }
 
@@ -145,7 +145,7 @@ function ok<OkValue>(value: OkValue): Ok<OkValue> {
  * const result = err("An error occurred");
  * console.log(result instanceof Err); // true
  */
-function err<ErrValue>(error: ErrValue): Err<ErrValue> {
+export function err<ErrValue>(error: ErrValue): Err<ErrValue> {
   return new Err(error);
 }
 
@@ -158,7 +158,7 @@ function err<ErrValue>(error: ErrValue): Err<ErrValue> {
  *   return attempt(() => JSON.parse(input));
  * }
  */
-function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error> {
+export function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error> {
   try {
     return ok(fn());
   } catch (error) {
@@ -179,7 +179,7 @@ function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error> {
  *   });
  * }
  */
-async function attemptAsync<OkValue>(
+export async function attemptAsync<OkValue>(
   fn: () => Promise<OkValue>,
 ): AsyncResult<OkValue, Error> {
   try {
@@ -190,7 +190,7 @@ async function attemptAsync<OkValue>(
 }
 
 /** Represents a successful result containing a value of generic type `OkValue`. The value is immutable. */
-class Ok<OkValue> implements ResultLike<OkValue, never> {
+export class Ok<OkValue> implements ResultLike<OkValue, never> {
   static _tag = "Ok" as const;
 
   readonly #value: OkValue;
@@ -286,7 +286,7 @@ class Ok<OkValue> implements ResultLike<OkValue, never> {
 }
 
 /** Represents a failed result containing an error of generic type `ErrValue`. The error is immutable. */
-class Err<ErrValue> implements ResultLike<never, ErrValue> {
+export class Err<ErrValue> implements ResultLike<never, ErrValue> {
   static _tag = "Err" as const;
 
   readonly #value: ErrValue;
@@ -382,6 +382,3 @@ class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return `${Err._tag}(${this.#value})`;
   }
 }
-
-export type { Result, AsyncResult };
-export { ok, err, Ok, Err, attempt, attemptAsync };
