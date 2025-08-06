@@ -10,10 +10,13 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",
     "@vitest/coverage-v8": "3.2.4",
+    "prettier": "^3.6.2",
     "rollup": "^4.46.2",
     "rollup-plugin-dts": "^6.2.1",
     "tslib": "^2.8.1",
@@ -23,7 +26,12 @@
   "scripts": {
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "build": "rollup --config"
+    "build": "rollup --config",
+    "lint": "npm run lint:ts && npm run lint:format",
+    "lint:ts": "tsc --noEmit",
+    "lint:format": "prettier --check .",
+    "fix": "npm run fix:format",
+    "fix:format": "prettier --write ."
   },
   "type": "module"
 }

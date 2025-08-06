@@ -18,10 +18,5 @@
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true
   },
-  "exclude": [
-    "node_modules",
-    "coverage",
-    "dist",
-    "**/*.test.ts",
-  ]
+  "exclude": ["node_modules", "coverage", "dist", "**/*.test.ts"]
 }
