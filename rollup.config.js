@@ -1,21 +1,34 @@
 import { defineConfig } from "rollup";
 import typescript from "@rollup/plugin-typescript";
-import terser from "@rollup/plugin-terser";
+import dts from "rollup-plugin-dts";
 
-export default defineConfig({
-  input: "index.ts",
-  output: [
-    {
-      file: "dist/index.js",
+export default defineConfig([
+  {
+    input: "index.ts",
+    output: [
+      {
+        file: "dist/index.js",
+        format: "cjs",
+        exports: "named",
+      },
+      {
+        file: "dist/index.esm.js",
+        format: "esm",
+      },
+    ],
+    plugins: [
+      typescript({
+        tsconfig: "./tsconfig.json",
+        declaration: false,
+      }),
+    ],
+  },
+  {
+    input: "index.ts",
+    output: {
+      file: "dist/index.d.ts",
       format: "esm",
     },
-  ],
-  plugins: [
-    terser(),
-    typescript({
-      tsconfig: "./tsconfig.json",
-      exclude: ["examples"],
-    }),
-  ],
-  external: [],
-});
+    plugins: [dts()],
+  },
+]);
