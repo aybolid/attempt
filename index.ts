@@ -211,11 +211,11 @@ class Ok<OkValue> implements ResultLike<OkValue, never> {
     return fn(this.#value);
   }
 
-  or<OtherErrValue>(_: Result<OkValue, OtherErrValue>): this {
+  or<_, OtherErrValue>(_: Result<OkValue, OtherErrValue>): this {
     return this;
   }
 
-  orElse<OtherErrorValue>(
+  orElse<_, OtherErrorValue>(
     _: (_: never) => Result<OkValue, OtherErrorValue>,
   ): this {
     return this;
@@ -299,11 +299,13 @@ class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return new Err(fn(this.#value));
   }
 
-  and<OtherOkValue>(_: Result<OtherOkValue, ErrValue>): this {
+  and<OtherOkValue, _>(_: Result<OtherOkValue, ErrValue>): this {
     return this;
   }
 
-  andThen<OtherOkValue>(_: (_: never) => Result<OtherOkValue, ErrValue>): this {
+  andThen<OtherOkValue, _>(
+    _: (_: never) => Result<OtherOkValue, ErrValue>,
+  ): this {
     return this;
   }
 
