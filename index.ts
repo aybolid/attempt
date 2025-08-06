@@ -1,4 +1,12 @@
-/** Contains either an {@link Ok} value or an {@link Err} value. */
+/** Contains either an {@link Ok} value or an {@link Err} value.
+ *
+ * @example
+ * let result: Result<number, string>;
+ * result = ok(69);
+ * result = err("meh")
+ *
+ * @see {@link ok}, {@link err}
+ */
 type Result<OkValue, ErrValue = Error> = Ok<OkValue> | Err<ErrValue>;
 
 /** Same as {@link Result}, but wrapped in a {@link Promise}. */
@@ -7,10 +15,30 @@ type AsyncResult<OkValue, ErrValue = Error> = Promise<
 >;
 
 interface ResultLike<OkValue, ErrValue> {
-  /** Returns `true` if this is an {@link Ok} result. */
+  /** Type guard. Returns `true` if this is an {@link Ok} result.
+   *
+   * @example
+   * const result = mayFail();
+   *
+   * if (result.isOk()) {
+   *   // do smth with Ok
+   * } else {
+   *   // do smth with Err
+   * }
+   */
   isOk(): this is Ok<OkValue>;
 
-  /** Returns `true` if this is an {@link Err} result. */
+  /** Type guard. Returns `true` if this is an {@link Err} result.
+   *
+   * @example
+   * const result = mayFail();
+   *
+   * if (result.isErr()) {
+   *   // do smth with Err
+   * } else {
+   *   // do smth with Ok
+   * }
+   */
   isErr(): this is Err<ErrValue>;
 
   /** Returns `true` if this is an {@link Ok} result and its value satisfies the predicate. */
@@ -101,12 +129,22 @@ interface ResultLike<OkValue, ErrValue> {
   toString(): string;
 }
 
-/** Creates an {@link Ok} result wrapping the provided value. */
+/** Creates an {@link Ok} result wrapping the provided value.
+ *
+ * @example
+ * const result = ok(42);
+ * console.log(result instanceof Ok); // true
+ */
 function ok<OkValue>(value: OkValue): Ok<OkValue> {
   return new Ok(value);
 }
 
-/** Creates an {@link Err} result wrapping the provided error. */
+/** Creates an {@link Err} result wrapping the provided error.
+ *
+ * @example
+ * const result = err("An error occurred");
+ * console.log(result instanceof Err); // true
+ */
 function err<ErrValue>(error: ErrValue): Err<ErrValue> {
   return new Err(error);
 }
@@ -114,6 +152,11 @@ function err<ErrValue>(error: ErrValue): Err<ErrValue> {
 /** Executes a synchronous function and wraps its result in a {@link Result}.
  *
  * Returns {@link Ok} if successful; {@link Err<Error>} if an exception is thrown.
+ *
+ * @example
+ * function parseJson<T>(input: string): Result<T> {
+ *   return attempt(() => JSON.parse(input));
+ * }
  */
 function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error> {
   try {
@@ -126,6 +169,15 @@ function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error> {
 /** Executes an asynchronous function and wraps its result in an {@link AsyncResult}.
  *
  * Returns {@link Ok} if successful; {@link Err<Error>} if an exception is thrown.
+ *
+ * @example
+ * async function callApi(url: string): Result<Response> {
+ *   return attemptAsync(async () => {
+ *     const response = await fetch(url);
+ *     if (!response.ok) throw `HTTP Error: ${response.status} (${response.statusText})`;
+ *     return response;
+ *   });
+ * }
  */
 async function attemptAsync<OkValue>(
   fn: () => Promise<OkValue>,
