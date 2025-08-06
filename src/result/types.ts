@@ -6,8 +6,6 @@ import type { Err, Ok } from ".";
  * let result: Result<number, string>;
  * result = ok(69);
  * result = err("meh")
- *
- * @see {@link ok}, {@link err}
  */
 export type Result<OkValue, ErrValue = Error> = Ok<OkValue> | Err<ErrValue>;
 
