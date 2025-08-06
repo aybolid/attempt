@@ -17,12 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true
   },
   "exclude": [
     "dist",
     "**/*.test.ts",
-    "examples"
   ]
 }

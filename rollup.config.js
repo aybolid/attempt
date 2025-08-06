@@ -14,6 +14,7 @@ export default defineConfig({
     terser(),
     typescript({
       tsconfig: "./tsconfig.json",
+      exclude: ["examples"],
     }),
   ],
   external: [],
