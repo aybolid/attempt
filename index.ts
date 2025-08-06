@@ -1,67 +1,210 @@
-/** Contains either an {@link Ok} value or an {@link Err} value. */
+/** Contains either an {@link Ok} value or an {@link Err} value.
+ *
+ * @example
+ * let result: Result<string, Error>
+ * result = ok("Hello");
+ * result = err(new Error("Oops"));
+ */
 type Result<T, E = Error> = Ok<T> | Err<E>;
 
 /** Same as {@link Result}, but wrapped in a {@link Promise}. */
 type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
 interface ResultLike<T, E> {
-  /** Returns `true` if this is an {@link Ok} result. */
+  /** Returns `true` if this is an {@link Ok} result.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.isOk()); // true
+   *
+   * const errResult = fa("Oops");
+   * console.log(errResult.isOk()); // false
+   */
   isOk(): this is Ok<T>;
 
-  /** Returns `true` if this is an {@link Err} result. */
+  /** Returns `true` if this is an {@link Err} result.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.isErr()); // false
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.isErr()); // true
+   */
   isErr(): this is Err<E>;
 
-  /** Returns `true` if this is an {@link Ok} result and its value satisfies the predicate. */
+  /** Returns `true` if this is an {@link Ok} result and its value satisfies the predicate.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.isOkAnd(x => x > 0)); // true
+   * console.log(okResult.isOkAnd(x => x < 0)); // false
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.isOkAnd(x => x > 0)); // false
+   * console.log(errResult.isOkAnd(x => x < 0)); // false
+   */
   isOkAnd(predicate: (value: T) => boolean): boolean;
 
-  /** Returns `true` if this is an {@link Err} result and its error satisfies the predicate. */
+  /** Returns `true` if this is an {@link Err} result and its error satisfies the predicate.
+   *
+   * @example
+   * const errResult = err(new Error("Oops"));
+   * console.log(errResult.isErrAnd(e => e.message === "Oops")); // true
+   * console.log(errResult.isErrAnd(e => e.message === "Another Oops")); // false
+   *
+   * const okResult = ok(42);
+   * console.log(okResult.isErrAnd(e => e.message === "Oops")); // false
+   * console.log(okResult.isErrAnd(e => e.message === "Another Oops")); // false
+   */
   isErrAnd(predicate: (error: E) => boolean): boolean;
 
-  /** Returns the {@link Ok} value if present, otherwise `null`. */
+  /** Returns the {@link Ok} value if present, otherwise `null`.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.ok()); // 42
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.ok()); // null
+   */
   ok(): T | null;
 
-  /** Returns the {@link Err} value if present, otherwise `null`. */
+  /** Returns the {@link Err} value if present, otherwise `null`.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.err()); // null
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.err()); // "Oops"
+   */
   err(): E | null;
 
-  /** Returns the {@link Ok} value, or throws if this is an {@link Err}. */
+  /** Returns the {@link Ok} value, or throws if this is an {@link Err}.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.unwrap()); // 42
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.unwrap()); // throws "Oops"
+   */
   unwrap(): T;
 
-  /** Returns the {@link Err} value, or throws if this is an {@link Ok}. */
+  /** Returns the {@link Err} value, or throws if this is an {@link Ok}.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.unwrapErr()); // throws 42
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.unwrapErr()); // "Oops"
+   */
   unwrapErr(): E;
 
-  /** Returns the {@link Ok} value if present, otherwise returns the provided default value. */
+  /** Returns the {@link Ok} value if present, otherwise returns the provided default value.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.unwrapOr(0)); // 42
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.unwrapOr(0)); // 0
+   */
   unwrapOr(defaultValue: T): T;
 
-  /** Returns the {@link Ok} value if present, otherwise computes a fallback using the provided function. */
+  /** Returns the {@link Ok} value if present, otherwise computes a fallback using the provided function.
+   *
+   * @example
+   * const okResult = ok(42);
+   * console.log(okResult.unwrapOrElse(() => 0)); // 42
+   *
+   * const errResult = err("Oops");
+   * console.log(errResult.unwrapOrElse((errValue) => errValue.length)); // 4
+   */
   unwrapOrElse(defaultValueFn: (error: E) => T): T;
 
   /** Returns the {@link Err} value.
    *
    * Throws an {@link Error} with the given message if this is an {@link Ok}.
+   *
+   * @example
+   * const errResult = err("Oops");
+   * console.log(errResult.expectErr("Expected an error")); // "Oops"
+   *
+   * const okResult = ok(42);
+   * console.log(okResult.expectErr("Expected an error")); // throws Error("Expected an error: 42")
    */
   expectErr(message: string): E;
 
   /** Maps the {@link Ok} value using the provided function.
    *
    * If this is an {@link Err}, returns self.
+   *
+   * @example
+   * const okResult = ok(42);
+   * const mappedOkResult = okResult.map((value) => value * 2);
+   * console.log(mappedOkResult); // Ok(84)
+   * console.log(mappedOkResult === okResult); // false (new Ok was created)
+   *
+   * const errResult = err("Oops");
+   * const mappedErrResult = errResult.map((value) => value * 2);
+   * console.log(mappedErrResult); // Err("Oops")
+   * console.log(mappedErrResult === errResult); // true (same reference)
    */
   map<U>(fn: (value: T) => U): Result<U, E>;
 
   /** Maps the {@link Err} value using the provided function.
    *
    * If this is an {@link Ok}, returns self.
+   *
+   * @example
+   * const okResult = ok(42);
+   * const mappedOkResult = okResult.mapErr((error) => error.toUpperCase());
+   * console.log(mappedOkResult); // Ok(84)
+   * console.log(mappedOkResult === okResult); // true (same reference)
+   *
+   * const errResult = err("Oops");
+   * const mappedErrResult = errResult.mapErr((error) => error.toUpperCase());
+   * console.log(mappedErrResult); // Err("OOPS")
+   * console.log(mappedErrResult !== errResult); // false (new Err was created)
    */
   mapErr<F>(fn: (error: E) => F): Result<T, F>;
 
   /** Returns `other` if this is an {@link Ok}; otherwise returns self.
    *
    * For lazy evaluation, use {@link andThen}.
+   *
+   * @example
+   * const okResult = ok(42);
+   * const otherResult = ok(100);
+   * const andResult = okResult.and(otherResult);
+   * console.log(andResult); // Ok(100)
+   * console.log(andResult === otherResult); // true (same reference)
+   *
+   * const errResult = err("Oops");
+   * const otherResult = ok(100);
+   * const andErrResult = errResult.and(otherResult);
+   * console.log(andErrResult); // Err("Oops!")
+   * console.log(andErrResult === errResult); // true (same reference)
    */
   and<U>(other: Result<U, E>): Result<U, E>;
 
   /** Applies the function to the {@link Ok} value and returns its result.
    *
    * If this is an {@link Err}, returns self.
+   *
+   * @example
+   * const okResult = ok(42);
+   * const mappedOkResult = okResult.andThen(x => ok(x * 2));
+   * console.log(mappedOkResult); // Ok(84)
+   * console.log(mappedOkResult === okResult); // true (same reference)
+   *
+   * const errResult = err("Oops");
+   * const mappedErrResult = errResult.andThen(x => ok(x * 2));
+   * console.log(mappedErrResult); // Err("Oops!")
+   * console.log(mappedErrResult === errResult); // true (same reference)
    */
   andThen<U>(fn: (value: T) => Result<U, E>): Result<U, E>;
 
@@ -121,7 +264,7 @@ async function attemptAsync<T>(fn: () => Promise<T>): AsyncResult<T, Error> {
   }
 }
 
-/** Represents a successful result containing a value of type `T`. */
+/** Represents a successful result containing a value of type `T`. The value is immutable. */
 class Ok<T> implements ResultLike<T, never> {
   static _tag = "Ok" as const;
 
@@ -211,7 +354,7 @@ class Ok<T> implements ResultLike<T, never> {
   }
 }
 
-/** Represents a failed result containing an error of type `E`. */
+/** Represents a failed result containing an error of type `E`. The error is immutable. */
 class Err<E> implements ResultLike<never, E> {
   static _tag = "Err" as const;
 
