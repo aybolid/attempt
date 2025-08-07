@@ -125,6 +125,16 @@ export interface ResultLike<OkValue, ErrValue> {
    */
   transpose(): Result<NonNullable<OkValue>, ErrValue> | null;
 
+  /** Matches the result against the provided body.
+   *
+   * If this is an {@link Ok}, calls the `Ok` function with the value.
+   * If this is an {@link Err}, calls the `Err` function with the error.
+   */
+  match<ReturnValue>(body: {
+    Ok: (value: OkValue) => ReturnValue;
+    Err: (error: ErrValue) => ReturnValue;
+  }): ReturnValue;
+
   /** Returns a string representation of the result. */
   toString(): string;
 }

@@ -59,3 +59,25 @@ export async function attemptAsync<OkValue>(
     return err(error instanceof Error ? error : Error(String(error)));
   }
 }
+
+/** Matches a {@link Result} against a set of cases.
+ *
+ * Same as calling {@link Result.match} directly.
+ *
+ * @example
+ * const result = ok(42);
+ * const value = match(result, {
+ *   Err: (error) => `Error: ${error}`,
+ *   Ok: (value) => `Value: ${value}`,
+ * });
+ * console.log(value); // "Value: 42"
+ */
+export function match<ReturnValue, OkValue, ErrValue>(
+  result: Result<OkValue, ErrValue>,
+  body: {
+    Err: (error: ErrValue) => ReturnValue;
+    Ok: (value: OkValue) => ReturnValue;
+  },
+): ReturnValue {
+  return result.match(body);
+}

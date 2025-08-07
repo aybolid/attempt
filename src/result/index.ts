@@ -95,6 +95,12 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
       : (this as Ok<NonNullable<OkValue>>);
   }
 
+  match<ReturnValue>(body: {
+    Ok: (value: OkValue) => ReturnValue;
+  }): ReturnValue {
+    return body.Ok(this.#value);
+  }
+
   toString(): string {
     // TODO: should use JSON.stringify?
     return `${Ok._tag}(${this.#value})`;
@@ -191,6 +197,12 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
 
   transpose(): this {
     return this;
+  }
+
+  match<ReturnValue>(body: {
+    Err: (error: ErrValue) => ReturnValue;
+  }): ReturnValue {
+    return body.Err(this.#value);
   }
 
   toString(): string {
