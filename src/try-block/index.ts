@@ -1,4 +1,4 @@
-import type { Result } from "@/result";
+import type { AsyncResult, Result } from "@/result";
 import { err, ok } from "@/utils";
 
 /**
@@ -23,19 +23,28 @@ type TryFn<OkValue, ErrValue> = (scope: {
    *
    * This operator provides a clean way to handle `Result` values without explicit error checking.
    * When a `Result.Err` is encountered, the error value is thrown and will be automatically
-   * caught by the surrounding {@link tryBlock} function.
+   * caught by the surrounding {@link $try} function.
    *
    * @example
    * // Instead of:
-   * const result1 = getResult();
-   * if (result1.isErr()) return result1;
-   * const value1 = result1.ok();
+   * const result = getResult();
+   * if (result.isErr()) return result;
+   * const value = result1.ok();
    *
    * // You can write:
-   * const value1 = $(getResult());
+   * const value = $(getResult());
    */
   $: <T>(result: Result<T, ErrValue>) => T;
 }) => OkValue;
+
+function unwrapOp<OkValue, ErrValue>(
+  result: Result<OkValue, ErrValue>,
+): OkValue {
+  if (result.isErr()) {
+    throw result.err();
+  }
+  return result.ok();
+}
 
 /**
  * Executes a function that uses the `$` unwrap operator, automatically converting thrown
@@ -46,7 +55,7 @@ type TryFn<OkValue, ErrValue> = (scope: {
  * `?` operator and provides similar functionality for JavaScript/TypeScript.
  *
  * @example
- * // Without tryBlock - verbose error handling
+ * // Without $try - verbose error handling
  * function processData(): Result<string, Error> {
  *   const result1 = parseInput();
  *   if (result1.isErr()) return result1;
@@ -60,9 +69,9 @@ type TryFn<OkValue, ErrValue> = (scope: {
  *   return ok(result3.ok());
  * }
  *
- * // With tryBlock - clean and concise
+ * // With $try - clean and concise
  * function processData(): Result<string, Error> {
- *   return tryBlock(({ $ }) => {
+ *   return $try(({ $ }) => {
  *     const input = $(parseInput());
  *     const validated = $(validateData(input));
  *     const formatted = $(formatOutput(validated));
@@ -70,24 +79,33 @@ type TryFn<OkValue, ErrValue> = (scope: {
  *   });
  * }
  *
- * @see {@link TryFn} for the function type that can be passed to `tryBlock`
+ * @see {@link TryFn} for the function type that can be passed to `$try`
  * @see {@link Result} for the Result type being handled
  */
-export function tryBlock<OkValue, ErrValue = Error>(
+export function $try<OkValue extends Promise<unknown>, ErrValue = Error>(
   tryFn: TryFn<OkValue, ErrValue>,
-): Result<OkValue, ErrValue> {
-  const unwrapOp = <T>(result: Result<T, ErrValue>): T => {
-    if (result.isErr()) {
-      throw result.err();
-    }
-    return result.ok();
-  };
+): AsyncResult<Awaited<OkValue>, ErrValue>;
 
+export function $try<OkValue, ErrValue = Error>(
+  tryFn: TryFn<OkValue, ErrValue>,
+): Result<OkValue, ErrValue>;
+
+export function $try<OkValue, ErrValue = Error>(
+  tryFn: TryFn<OkValue, ErrValue>,
+): Result<OkValue, ErrValue> | AsyncResult<Awaited<OkValue>, ErrValue> {
   try {
-    return ok(tryFn({ $: unwrapOp }));
+    const result = tryFn({ $: unwrapOp });
+
+    // handle async overload
+    if (result instanceof Promise) {
+      return (result as Promise<Awaited<OkValue>>).then(ok, (e: ErrValue) =>
+        err(e),
+      );
+    }
+
+    // handle sync overload
+    return ok(result);
   } catch (error) {
     return err(error as ErrValue);
   }
 }
-
-// TODO: async tryBlock
