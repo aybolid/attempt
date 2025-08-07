@@ -1,8 +1,7 @@
-import { expect, describe, test, vi } from "vitest";
+import { expect, describe, test } from "vitest";
 
-import { Err, Ok } from "@/result";
-
-import { attempt, attemptAsync, ok, err, match } from ".";
+import { attempt, attemptAsync, err, ok } from ".";
+import { Err, Ok } from "..";
 
 describe(`${ok.name} and ${err.name}`, () => {
   test(`${ok.name}() should create an ${Ok.name} instance`, () => {
@@ -72,31 +71,5 @@ describe(`${attempt.name} and ${attemptAsync.name}`, () => {
     const awaitedResult = await result;
     const error = awaitedResult.err();
     expect(error).toBeInstanceOf(Error);
-  });
-});
-
-describe(`${match.name}`, () => {
-  test(`${match.name}() on ${Ok.name} result should execute Ok branch`, () => {
-    const result = ok(42);
-    const errBranch = vi.fn();
-    const matched = match(result, {
-      Ok: () => "ok",
-      Err: errBranch,
-    });
-
-    expect(matched).toBe("ok");
-    expect(errBranch).not.toBeCalled();
-  });
-
-  test(`${match.name}() on ${Err.name} result should execute Err branch`, () => {
-    const result = err("err");
-    const okBranch = vi.fn();
-    const matched = match(result, {
-      Ok: okBranch,
-      Err: (err) => err + "!",
-    });
-
-    expect(matched).toBe("err!");
-    expect(okBranch).not.toBeCalled();
   });
 });

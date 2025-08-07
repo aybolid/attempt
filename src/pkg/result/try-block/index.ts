@@ -1,5 +1,4 @@
-import type { AsyncResult, Result } from "@/result";
-import { err, ok } from "@/utils";
+import { err, ok, type AsyncResult, type Result } from "..";
 
 /**
  * A function that receives a scope with an unwrap operator (`$`) for safely unwrapping {@link Result} values.
