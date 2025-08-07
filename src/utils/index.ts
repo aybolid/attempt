@@ -60,6 +60,48 @@ export async function attemptAsync<OkValue>(
   }
 }
 
+/**
+ * Wraps a function to automatically handle exceptions and return {@link Result} ({@link AsyncResult} if wrapping an async function).
+ *
+ * @example
+ * const safeApiCall = withAttempt(async (url: string) => {
+ *   const response = await fetch(url);
+ *   if (!response.ok) throw `HTTP ${response.status}`; // Error will be constructed
+ *   return response;
+ * });
+ *
+ * const result: AsyncResult<Response, Error> = await safeApiCall("/api/data");
+ */
+export function withAttempt<OkValue, Args extends readonly unknown[]>(
+  fn: (...args: Args) => Promise<OkValue>,
+): (...args: Args) => AsyncResult<OkValue, Error>;
+
+export function withAttempt<OkValue, Args extends readonly unknown[]>(
+  fn: (...args: Args) => OkValue,
+): (...args: Args) => Result<OkValue, Error>;
+
+export function withAttempt<Fn extends (...args: unknown[]) => unknown>(
+  fn: Fn,
+): (...args: Parameters<Fn>) => unknown {
+  return (...args: Parameters<Fn>) => {
+    try {
+      const result = fn(...args);
+
+      if (result instanceof Promise) {
+        return result
+          .then((value) => ok(value))
+          .catch((error) =>
+            err(error instanceof Error ? error : Error(String(error))),
+          );
+      } else {
+        return ok(result);
+      }
+    } catch (error) {
+      return err(error instanceof Error ? error : Error(String(error)));
+    }
+  };
+}
+
 /** Matches a {@link Result} against a set of cases.
  *
  * Same as calling {@link Result.match} directly.
