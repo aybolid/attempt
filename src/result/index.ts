@@ -1,5 +1,5 @@
-import type { ResultLike, Result, AsyncResult } from "./types";
-export type { Result, AsyncResult };
+import type { ResultLike, Result, AsyncResult, IntoResult } from "./types";
+export type { Result, AsyncResult, IntoResult };
 
 export class ResultError extends Error {
   override name = "ResultError";

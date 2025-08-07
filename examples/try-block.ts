@@ -10,7 +10,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function parseAsync<T>(input: string): AsyncResult<T> {
   return attemptAsync(async () => {
-    await sleep(300);
+    await sleep(100);
     return JSON.parse(input);
   });
 }
@@ -26,9 +26,9 @@ const result = $try(({ $ }) => {
   return x + y;
 });
 
-const failedResult = $try<number, string>(({ $ }) => {
-  const x = $(parse<number>("42").mapErr((err) => err.message));
-  const y = $(parse<number>("invalidJson").mapErr((err) => err.message));
+const failedResult = $try(({ $ }) => {
+  const x = $(parse<number>("42"));
+  const y = $(parse<number>("invalidJson"));
 
   return x + y;
 });
@@ -40,18 +40,12 @@ const awaitedResult = await $try(async ({ $ }) => {
   return x + y;
 });
 
-const awaitedFailedResult = await $try<Promise<number>, string>(
-  async ({ $ }) => {
-    const x = $(
-      await parseAsync<number>("badJson").then((r) =>
-        r.mapErr((err) => err.message),
-      ),
-    );
-    const y = $(parse<number>("222").mapErr((err) => err.message));
+const awaitedFailedResult = await $try(async ({ $ }) => {
+  const x = $(await parseAsync<number>("badJson"));
+  const y = $(parse<number>("222"));
 
-    return x + y;
-  },
-);
+  return x + y;
+});
 
 console.log("Result:");
 console.log(result.toString());

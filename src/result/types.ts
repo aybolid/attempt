@@ -14,6 +14,20 @@ export type AsyncResult<OkValue, ErrValue = Error> = Promise<
   Result<OkValue, ErrValue>
 >;
 
+export interface IntoResult<OkValue, ErrValue> {
+  /** Converts this value into a {@link Result}.
+   *
+   * @example
+   * class MyError extends Error implements IntoResult<never, MyError> {
+   *   override name = "MyError";
+   *   intoResult(): Result<never, MyError> {
+   *     return err(this)
+   *   }
+   * }
+   */
+  intoResult(): Result<OkValue, ErrValue>;
+}
+
 export interface ResultLike<OkValue, ErrValue> {
   /** Type guard. Returns `true` if this is an {@link Ok} result.
    *
