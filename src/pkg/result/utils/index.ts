@@ -2,150 +2,162 @@ import { isPromise, toError } from "@/internal/utils";
 
 import { Err, Ok, type AsyncResult, type Result } from "..";
 
-/** Creates an {@link Ok} result wrapping the provided value.
+/**
+ * Wraps a value in an {@link Ok} result.
+ *
+ * Indicates a successful outcome.
  *
  * @example
  * const result = ok(42);
- * console.log(result instanceof Ok); // true
+ * // result is Ok<number>
+ *
+ * @param value - The value to wrap.
+ * @returns An Ok instance containing the provided value.
  */
+
 export function ok<OkValue>(value: OkValue): Ok<OkValue> {
   return new Ok(value);
 }
 
-/** Creates an {@link Err} result wrapping the provided error.
+/**
+ * Wraps an error in an {@link Err} result.
+ *
+ * Indicates a failed outcome.
  *
  * @example
- * const result = err("An error occurred");
- * console.log(result instanceof Err); // true
+ * const result = err("Something went wrong");
+ * // result is Err<string>
+ *
+ * @param error - The error to wrap.
+ * @returns An Err instance containing the provided error.
  */
+
 export function err<ErrValue>(error: ErrValue): Err<ErrValue> {
   return new Err(error);
 }
 
-/** Executes a synchronous function and wraps its result in a {@link Result}.
+/**
+ * Executes a function and returns a {@link Result} or {@link AsyncResult}, depending on whether the function is synchronous or asynchronous.
  *
- * Returns {@link Ok} if successful; {@link Err} if an exception is thrown.
+ * If the function succeeds, wraps the return value in {@link Ok}.
+ * If it throws, wraps the error (optionally mapped) in {@link Err}.
+ *
+ * This utility supports both sync and async functions.
  *
  * @example
- * function parseJson<T>(input: string): Result<T> {
- *   return attempt(() => JSON.parse(input));
- * }
+ * // Synchronous usage
+ * const result = attempt(() => JSON.parse(input));
+ *
+ * @example
+ * // Asynchronous usage
+ * const result = await attempt(async () => {
+ *   const response = await fetch(url);
+ *   if (!response.ok) throw new Error("Request failed");
+ *   return response;
+ * });
+ *
+ * @param fn - A function to execute, either sync or async.
+ * @param errorMapper - Optional function to map caught errors.
+ * @returns A {@link Result} or {@link AsyncResult}, depending on `fn`.
  */
-// Overloads with custom error mapping
+
+// Async with custom error mapping
+export function attempt<OkValue, ErrValue>(
+  fn: () => Promise<OkValue>,
+  errorMapper: (e: unknown) => ErrValue,
+): AsyncResult<OkValue, ErrValue>;
+
+// Sync with custom error mapping
 export function attempt<OkValue, ErrValue>(
   fn: () => OkValue,
   errorMapper: (e: unknown) => ErrValue,
 ): Result<OkValue, ErrValue>;
 
-// Overloads with default error mapping (Error)
-export function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error>;
-
-export function attempt<OkValue, ErrValue>(
-  fn: () => OkValue,
-  errorMapper?: (e: unknown) => ErrValue,
-): Result<OkValue, ErrValue | Error> {
-  try {
-    return ok(fn());
-  } catch (e) {
-    const mapper = errorMapper ?? toError;
-    return err(mapper(e));
-  }
-}
-
-/** Executes an asynchronous function and wraps its result in an {@link AsyncResult}.
- *
- * Returns {@link Ok} if successful; {@link Err<Error>} if an exception is thrown.
- *
- * @example
- * async function callApi(url: string): Result<Response> {
- *   return attemptAsync(async () => {
- *     const response = await fetch(url);
- *     if (!response.ok) throw `HTTP Error: ${response.status} (${response.statusText})`;
- *     return response;
- *   });
- * }
- */
-// Overloads with custom error mapping
-export async function attemptAsync<OkValue, ErrValue>(
-  fn: () => Promise<OkValue>,
-  errorMapper: (e: unknown) => ErrValue,
-): AsyncResult<OkValue, ErrValue>;
-
-// Overloads with default error mapping (Error)
-export async function attemptAsync<OkValue>(
+// Async with default error mapping
+export function attempt<OkValue>(
   fn: () => Promise<OkValue>,
 ): AsyncResult<OkValue, Error>;
 
-export async function attemptAsync<OkValue, ErrValue>(
-  fn: () => Promise<OkValue>,
+// Sync with default error mapping
+export function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error>;
+
+export function attempt<OkValue, ErrValue>(
+  fn: () => OkValue | Promise<OkValue>,
   errorMapper?: (e: unknown) => ErrValue,
-): AsyncResult<OkValue, ErrValue | Error> {
+): Result<OkValue, ErrValue | Error> | AsyncResult<OkValue, ErrValue | Error> {
+  const mapper = errorMapper ?? toError;
+
   try {
-    return ok(await fn());
+    const result = fn();
+    if (isPromise(result)) {
+      return result.then(ok).catch((e) => err(mapper(e)));
+    } else {
+      return ok(result);
+    }
   } catch (e) {
-    const mapper = errorMapper ?? toError;
     return err(mapper(e));
   }
 }
 
 /**
- * Wraps a function to automatically handle exceptions and return {@link Result} ({@link AsyncResult} if wrapping an async function).
+ * Wraps a function (sync or async) in a safe wrapper that catches exceptions and returns a {@link Result} or {@link AsyncResult}.
+ *
+ * Use this to create reusable safe function wrappers without repeating try/catch logic.
  *
  * @example
- * const safeApiCall = withAttempt(async (url: string) => {
- *   const response = await fetch(url);
- *   if (!response.ok) throw `HTTP ${response.status}`; // Error will be constructed
- *   return response;
- * });
+ * const safeParse = withAttempt(JSON.parse);
+ * const result = safeParse("{\"a\": 1}");
  *
- * const result: AsyncResult<Response, Error> = await safeApiCall("/api/data");
+ * @example
+ * const safeFetch = withAttempt(async (url: string) => {
+ *   const res = await fetch(url);
+ *   if (!res.ok) throw new Error("Fetch failed");
+ *   return res;
+ * });
+ * const result = await safeFetch("https://api.example.com");
+ *
+ * @param fn - The function to wrap. Can be sync or async.
+ * @param errorMapper - Optional mapper for caught exceptions.
+ * @returns A wrapped function that returns a {@link Result} or {@link AsyncResult}.
  */
-// Overloads for async functions with custom error mapper
+
+// Async with custom error mapper
 export function withAttempt<OkValue, ErrValue, Args extends readonly unknown[]>(
   fn: (...args: Args) => Promise<OkValue>,
   errorMapper: (e: unknown) => ErrValue,
-): (...args: Args) => Promise<Result<OkValue, ErrValue>>;
+): (...args: Args) => AsyncResult<OkValue, ErrValue>;
 
-// Overloads for sync functions with custom error mapper
+// Sync with custom error mapper
 export function withAttempt<OkValue, ErrValue, Args extends readonly unknown[]>(
   fn: (...args: Args) => OkValue,
   errorMapper: (e: unknown) => ErrValue,
 ): (...args: Args) => Result<OkValue, ErrValue>;
 
-// Overloads for async functions without error mapper (defaults to Error)
+// Async without error mapper
 export function withAttempt<OkValue, Args extends readonly unknown[]>(
   fn: (...args: Args) => Promise<OkValue>,
-): (...args: Args) => Promise<Result<OkValue, Error>>;
+): (...args: Args) => AsyncResult<OkValue, Error>;
 
-// Overloads for sync functions without error mapper (defaults to Error)
+// Sync without error mapper
 export function withAttempt<OkValue, Args extends readonly unknown[]>(
   fn: (...args: Args) => OkValue,
 ): (...args: Args) => Result<OkValue, Error>;
 
-export function withAttempt<OkValue, ErrValue, Args extends readonly unknown[]>(
+export function withAttempt<
+  OkValue,
+  ErrValue,
+  Args extends readonly unknown[],
+  ReturnValue =
+    | Result<OkValue, ErrValue | Error>
+    | AsyncResult<OkValue, ErrValue | Error>,
+>(
   fn: (...args: Args) => OkValue | Promise<OkValue>,
   errorMapper?: (e: unknown) => ErrValue,
-): (
-  ...args: Args
-) =>
-  | Result<OkValue, ErrValue | Error>
-  | Promise<Result<OkValue, ErrValue | Error>> {
-  return (...args: Args) => {
-    const mapper = errorMapper ?? toError;
-
-    try {
-      const result = fn(...args);
-      if (isPromise(result)) {
-        return result
-          .then((value) => ok(value))
-          .catch((e) => {
-            return err(mapper(e));
-          });
-      } else {
-        return ok(result);
-      }
-    } catch (e) {
-      return err(mapper(e));
-    }
-  };
+): (...args: Args) => ReturnValue {
+  return (...args: Args) =>
+    // Note: TypeScript cannot infer the conditional return type here cleanly,
+    // so we assert the result as a workaround to support both sync and async functions.
+    errorMapper
+      ? (attempt(() => fn(...args), errorMapper) as ReturnValue)
+      : (attempt(() => fn(...args)) as ReturnValue);
 }

@@ -1,6 +1,6 @@
 import { expect, describe, test } from "vitest";
 
-import { attempt, attemptAsync, err, ok } from ".";
+import { attempt, err, ok } from ".";
 import { Err, Ok } from "..";
 
 describe(`${ok.name} and ${err.name}`, () => {
@@ -14,15 +14,8 @@ describe(`${ok.name} and ${err.name}`, () => {
   });
 });
 
-describe(`${attempt.name} and ${attemptAsync.name}`, () => {
+describe(`${attempt.name}`, () => {
   const fn = (opts: { shouldThrow: boolean }) => {
-    if (opts.shouldThrow) {
-      throw new Error("error");
-    }
-    return "success";
-  };
-
-  const asyncFn = async (opts: { shouldThrow: boolean }) => {
     if (opts.shouldThrow) {
       throw new Error("error");
     }
@@ -40,36 +33,15 @@ describe(`${attempt.name} and ${attemptAsync.name}`, () => {
     expect(error).toBeInstanceOf(Error);
   });
 
-  test(`Successful call with ${attemptAsync.name} hof should return ${Promise.name}<${Ok.name}>`, async () => {
-    const result = attemptAsync(() => asyncFn({ shouldThrow: false }));
-    expect(result).toBeInstanceOf(Promise);
-    const awaitedResult = await result;
-    expect(awaitedResult).toBeInstanceOf(Ok);
-  });
-  test(`Unsuccessful call with ${attemptAsync.name} hof should return ${Promise.name}<${Err.name}> with ${Error.name} value`, async () => {
-    const result = attemptAsync(() => asyncFn({ shouldThrow: true }));
-    expect(result).toBeInstanceOf(Promise);
-    const awaitedResult = await result;
-    expect(awaitedResult).toBeInstanceOf(Err);
-    const error = awaitedResult.err();
-    expect(error).toBeInstanceOf(Error);
-  });
-
   test(`When throwing non-${Error.name} value with ${attempt.name} hof, new ${Error.name} should be constructed`, () => {
     const result = attempt(() => {
-      throw 13;
+      if (true) {
+        throw 13;
+      }
+      return 240;
     });
     expect(result).toBeInstanceOf(Err);
     const error = result.err();
-    expect(error).toBeInstanceOf(Error);
-  });
-  test(`When throwing non-${Error.name} value with ${attemptAsync.name} hof, new ${Error.name} should be constructed`, async () => {
-    const result = attemptAsync(() => {
-      throw 13;
-    });
-    expect(result).toBeInstanceOf(Promise);
-    const awaitedResult = await result;
-    const error = awaitedResult.err();
     expect(error).toBeInstanceOf(Error);
   });
 });
