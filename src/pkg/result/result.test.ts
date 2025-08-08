@@ -103,7 +103,7 @@ describe("Access", () => {
     expect(result.err()).toBe(228);
   });
 
-  test(`${Ok.name}.${Ok.prototype.expectErr.name}() should throw an ${Error.name} with provided message and value as string`, () => {
+  test(`${Ok.name}.${Ok.prototype.expectErr.name}() should throw an ${ResultError.name} with provided message and value as string`, () => {
     const result = new Ok(13);
     expect(() => result.expectErr("I want this to throw")).toThrow(
       "I want this to throw: 13",
@@ -221,13 +221,13 @@ describe("Transform", () => {
 describe("Misc", () => {
   test(`${Ok.name}.${Ok.prototype.toString.name}() should return valid string representation`, () => {
     let result: Ok<unknown> = new Ok("Hello");
-    expect(result.toString()).toBe("Ok(Hello)");
+    expect(result.toString()).toBe('Ok("Hello")');
     result = new Ok(69);
     expect(result.toString()).toBe("Ok(69)");
     result = new Ok([1, 2, 3]);
-    expect(result.toString()).toBe("Ok(1,2,3)");
+    expect(result.toString()).toBe("Ok([1,2,3])");
     result = new Ok({ name: "John", age: 30 });
-    expect(result.toString()).toBe("Ok([object Object])");
+    expect(result.toString()).toBe('Ok({"name":"John","age":30})');
     result = new Ok(undefined);
     expect(result.toString()).toBe("Ok(undefined)");
     result = new Ok(null);
@@ -235,16 +235,33 @@ describe("Misc", () => {
   });
   test(`${Err.name}.${Err.prototype.toString.name}() should return valid string representation`, () => {
     let result: Err<unknown> = new Err("error");
-    expect(result.toString()).toBe("Err(error)");
+    expect(result.toString()).toBe('Err("error")');
     result = new Err(69);
     expect(result.toString()).toBe("Err(69)");
     result = new Err([1, 2, 3]);
-    expect(result.toString()).toBe("Err(1,2,3)");
+    expect(result.toString()).toBe("Err([1,2,3])");
     result = new Err({ name: "John", age: 30 });
-    expect(result.toString()).toBe("Err([object Object])");
+    expect(result.toString()).toBe('Err({"name":"John","age":30})');
     result = new Err(undefined);
     expect(result.toString()).toBe("Err(undefined)");
     result = new Err(null);
     expect(result.toString()).toBe("Err(null)");
+  });
+
+  test(`${Ok.name}.${Ok.prototype.toString.name}() should not throw when ${JSON.stringify.name} fails`, () => {
+    const obj = { name: "John", age: 30 };
+    // @ts-ignore
+    obj.self = obj;
+
+    let result: Ok<unknown> = new Ok(obj);
+    expect(result.toString()).toBe("Ok(<non-serializable>)");
+  });
+  test(`${Err.name}.${Err.prototype.toString.name}() should not throw when ${JSON.stringify.name} fails`, () => {
+    const obj = { name: "John", age: 30 };
+    // @ts-ignore
+    obj.self = obj;
+
+    let result: Err<unknown> = new Err(obj);
+    expect(result.toString()).toBe("Err(<non-serializable>)");
   });
 });
