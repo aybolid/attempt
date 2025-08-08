@@ -1,10 +1,9 @@
 export * from "./types";
-export * from "./try-block";
 export * from "./utils";
 
 import type { Result } from "./types";
 
-interface ResultLike<OkValue, ErrValue> {
+interface ResultLike<T, E> {
   /** Type guard. Returns `true` if this is an {@link Ok} result.
    *
    * @example
@@ -16,7 +15,7 @@ interface ResultLike<OkValue, ErrValue> {
    *   // do smth with Err
    * }
    */
-  isOk(): this is Ok<OkValue>;
+  isOk(): this is Ok<T>;
 
   /** Type guard. Returns `true` if this is an {@link Err} result.
    *
@@ -29,101 +28,86 @@ interface ResultLike<OkValue, ErrValue> {
    *   // do smth with Ok
    * }
    */
-  isErr(): this is Err<ErrValue>;
+  isErr(): this is Err<E>;
 
   /** Returns `true` if this is an {@link Ok} result and its value satisfies the predicate. */
-  isOkAnd(predicate: (value: OkValue) => boolean): boolean;
+  isOkAnd(predicate: (value: T) => boolean): boolean;
 
   /** Returns `true` if this is an {@link Err} result and its error satisfies the predicate. */
-  isErrAnd(predicate: (error: ErrValue) => boolean): boolean;
+  isErrAnd(predicate: (error: E) => boolean): boolean;
 
   /** Returns the {@link Ok} value if present, otherwise `null`. */
-  ok(): OkValue | null;
+  ok(): T | null;
 
   /** Returns the {@link Err} value if present, otherwise `null`. */
-  err(): ErrValue | null;
+  err(): E | null;
 
   /** Returns the {@link Ok} value, or throws {@link ResultError} if this is an {@link Err}. */
-  unwrap(): OkValue;
+  unwrap(): T;
 
   /** Returns the {@link Err} value, or throws {@link ResultError} if this is an {@link Ok}. */
-  unwrapErr(): ErrValue;
+  unwrapErr(): E;
 
   /** Returns the {@link Ok} value if present, otherwise returns the provided default value. */
-  unwrapOr(defaultValue: OkValue): OkValue;
+  unwrapOr(defaultValue: T): T;
 
   /** Returns the {@link Ok} value if present, otherwise computes a fallback using the provided function. */
-  unwrapOrElse(defaultValueFn: (error: ErrValue) => OkValue): OkValue;
+  unwrapOrElse(defaultValueFn: (error: E) => T): T;
 
   /** Returns the {@link Err} value.
    *
    * Throws an {@link Error} with the given message if this is an {@link Ok}.
    */
-  expectErr(message: string): ErrValue;
+  expectErr(message: string): E;
 
   /** Maps the {@link Ok} value using the provided function.
    *
    * If this is an {@link Err}, returns self.
    */
-  map<OtherOkValue>(
-    fn: (value: OkValue) => OtherOkValue,
-  ): Result<OtherOkValue, ErrValue>;
+  map<T2>(fn: (value: T) => T2): Result<T2, E>;
 
   /** Maps the {@link Err} value using the provided function.
    *
    * If this is an {@link Ok}, returns self.
    */
-  mapErr<OtherErrValue>(
-    fn: (error: ErrValue) => OtherErrValue,
-  ): Result<OkValue, OtherErrValue>;
+  mapErr<E2>(fn: (error: E) => E2): Result<T, E2>;
 
   /** Returns `other` if this is an {@link Ok}; otherwise returns self.
    *
    * For lazy evaluation, use {@link andThen}.
    */
-  and<OtherOkValue>(
-    other: Result<OtherOkValue, ErrValue>,
-  ): Result<OtherOkValue, ErrValue>;
+  and<T2>(other: Result<T2, E>): Result<T2, E>;
 
   /** Applies the function to the {@link Ok} value and returns its result.
    *
    * If this is an {@link Err}, returns self.
    */
-  andThen<OtherOkValue>(
-    fn: (value: OkValue) => Result<OtherOkValue, ErrValue>,
-  ): Result<OtherOkValue, ErrValue>;
+  andThen<T2>(fn: (value: T) => Result<T2, E>): Result<T2, E>;
 
   /** Returns `other` if this is an {@link Err}; otherwise returns self.
    *
    * For lazy evaluation, use {@link orElse}.
    */
-  or<OtherErrValue>(
-    other: Result<OkValue, OtherErrValue>,
-  ): Result<OkValue, OtherErrValue>;
+  or<E2>(other: Result<T, E2>): Result<T, E2>;
 
   /** Applies the function to the {@link Err} value and returns its result.
    *
    * If this is an {@link Ok}, returns self.
    */
-  orElse<OtherErrorValue>(
-    fn: (error: ErrValue) => Result<OkValue, OtherErrorValue>,
-  ): Result<OkValue, OtherErrorValue>;
+  orElse<E2>(fn: (error: E) => Result<T, E2>): Result<T, E2>;
 
   /** Converts an {@link Ok} containing `null` or `undefined` to `null`.
    *
    * Otherwise, returns self.
    */
-  transpose(): Result<NonNullable<OkValue>, ErrValue> | null;
+  transpose(): Result<NonNullable<T>, E> | null;
 
   /** Matches the result against the provided body.
    *
    * If this is an {@link Ok}, calls the `Ok` function with the value.
    * If this is an {@link Err}, calls the `Err` function with the error.
    */
-  match<ReturnValue>(body: {
-    Ok: (value: OkValue) => ReturnValue;
-    Err: (error: ErrValue) => ReturnValue;
-  }): ReturnValue;
+  match<U>(body: { Ok: (value: T) => U; Err: (error: E) => U }): U;
 
   /** Returns a string representation of the result. */
   toString(): string;
@@ -134,12 +118,12 @@ export class ResultError extends Error {
 }
 
 /** Represents a successful result containing a value of generic type `OkValue`. The value is immutable. */
-export class Ok<OkValue> implements ResultLike<OkValue, never> {
+export class Ok<T> implements ResultLike<T, never> {
   static _tag = "Ok" as const;
 
-  readonly #value: OkValue;
+  readonly #value: T;
 
-  constructor(value: OkValue) {
+  constructor(value: T) {
     this.#value = value;
   }
 
@@ -147,11 +131,11 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
     return false;
   }
 
-  isOk(): this is Ok<OkValue> {
+  isOk(): this is Ok<T> {
     return true;
   }
 
-  isOkAnd(predicate: (value: OkValue) => boolean): boolean {
+  isOkAnd(predicate: (value: T) => boolean): boolean {
     return predicate(this.#value);
   }
 
@@ -159,7 +143,7 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
     return false;
   }
 
-  ok(): OkValue {
+  ok(): T {
     return this.#value;
   }
 
@@ -167,7 +151,7 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
     return null;
   }
 
-  unwrap(): OkValue {
+  unwrap(): T {
     return this.#value;
   }
 
@@ -175,11 +159,11 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
     throw new ResultError(`Unwrapping error value on ${this.toString()}`);
   }
 
-  unwrapOr(_: OkValue): OkValue {
+  unwrapOr(_: T): T {
     return this.#value;
   }
 
-  unwrapOrElse(_: (_: never) => OkValue): OkValue {
+  unwrapOrElse(_: (_: never) => T): T {
     return this.#value;
   }
 
@@ -187,45 +171,37 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
     throw new Error(`${message}: ${this.#value}`);
   }
 
-  map<OtherOkValue>(fn: (value: OkValue) => OtherOkValue): Ok<OtherOkValue> {
+  map<T2>(fn: (value: T) => T2): Ok<T2> {
     return new Ok(fn(this.#value));
   }
 
-  mapErr<OtherErrValue>(_: (_: never) => OtherErrValue): this {
+  mapErr<E2>(_: (_: never) => E2): this {
     return this;
   }
 
-  and<OtherOkValue, OtherErrValue>(
-    other: Result<OtherOkValue, OtherErrValue>,
-  ): Result<OtherOkValue, OtherErrValue> {
+  and<T2, E2>(other: Result<T2, E2>): Result<T2, E2> {
     return other;
   }
 
-  andThen<OtherOkValue, OtherErrorValue>(
-    fn: (value: OkValue) => Result<OtherOkValue, OtherErrorValue>,
-  ): Result<OtherOkValue, OtherErrorValue> {
+  andThen<T2, E2>(fn: (value: T) => Result<T2, E2>): Result<T2, E2> {
     return fn(this.#value);
   }
 
-  or<_, OtherErrValue>(_: Result<OkValue, OtherErrValue>): this {
+  or<_, E2>(_: Result<T, E2>): this {
     return this;
   }
 
-  orElse<_, OtherErrorValue>(
-    _: (_: never) => Result<OkValue, OtherErrorValue>,
-  ): this {
+  orElse<_, E2>(_: (_: never) => Result<T, E2>): this {
     return this;
   }
 
-  transpose(): Ok<NonNullable<OkValue>> | null {
+  transpose(): Ok<NonNullable<T>> | null {
     return this.#value === null || this.#value === undefined
       ? null
-      : (this as Ok<NonNullable<OkValue>>);
+      : (this as Ok<NonNullable<T>>);
   }
 
-  match<ReturnValue>(body: {
-    Ok: (value: OkValue) => ReturnValue;
-  }): ReturnValue {
+  match<U>(body: { Ok: (value: T) => U }): U {
     return body.Ok(this.#value);
   }
 
@@ -236,12 +212,12 @@ export class Ok<OkValue> implements ResultLike<OkValue, never> {
 }
 
 /** Represents a failed result containing an error of generic type `ErrValue`. The error is immutable. */
-export class Err<ErrValue> implements ResultLike<never, ErrValue> {
+export class Err<E> implements ResultLike<never, E> {
   static _tag = "Err" as const;
 
-  readonly #value: ErrValue;
+  readonly #value: E;
 
-  constructor(value: ErrValue) {
+  constructor(value: E) {
     this.#value = value;
   }
 
@@ -249,7 +225,7 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return false;
   }
 
-  isErr(): this is Err<ErrValue> {
+  isErr(): this is Err<E> {
     return true;
   }
 
@@ -257,7 +233,7 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return false;
   }
 
-  isErrAnd(predicate: (value: ErrValue) => boolean): boolean {
+  isErrAnd(predicate: (value: E) => boolean): boolean {
     return predicate(this.#value);
   }
 
@@ -265,7 +241,7 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return null;
   }
 
-  err(): ErrValue {
+  err(): E {
     return this.#value;
   }
 
@@ -273,7 +249,7 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
     throw new ResultError(`Unwrapping value on ${this.toString()}`);
   }
 
-  unwrapErr(): ErrValue {
+  unwrapErr(): E {
     return this.#value;
   }
 
@@ -281,45 +257,35 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return defaultValue;
   }
 
-  unwrapOrElse<DefaultOkValue>(
-    fn: (errorValue: ErrValue) => DefaultOkValue,
-  ): DefaultOkValue {
+  unwrapOrElse<T>(fn: (errorValue: E) => T): T {
     return fn(this.#value);
   }
 
-  expectErr(_: string): ErrValue {
+  expectErr(_: string): E {
     return this.#value;
   }
 
-  map<OtherOkValue>(_: (_: never) => OtherOkValue): this {
+  map<T2>(_: (_: never) => T2): this {
     return this;
   }
 
-  mapErr<OtherErrValue>(
-    fn: (error: ErrValue) => OtherErrValue,
-  ): Err<OtherErrValue> {
+  mapErr<E2>(fn: (error: E) => E2): Err<E2> {
     return new Err(fn(this.#value));
   }
 
-  and<OtherOkValue, _>(_: Result<OtherOkValue, ErrValue>): this {
+  and<T2, _>(_: Result<T2, E>): this {
     return this;
   }
 
-  andThen<OtherOkValue, _>(
-    _: (_: never) => Result<OtherOkValue, ErrValue>,
-  ): this {
+  andThen<T2, _>(_: (_: never) => Result<T2, E>): this {
     return this;
   }
 
-  or<OtherOkValue, OtherErrValue>(
-    other: Result<OtherOkValue, OtherErrValue>,
-  ): Result<OtherOkValue, OtherErrValue> {
+  or<T2, E2>(other: Result<T2, E2>): Result<T2, E2> {
     return other;
   }
 
-  orElse<OtherOkValue, OtherErrorValue>(
-    fn: (error: ErrValue) => Result<OtherOkValue, OtherErrorValue>,
-  ): Result<OtherOkValue, OtherErrorValue> {
+  orElse<T2, E2>(fn: (error: E) => Result<T2, E2>): Result<T2, E2> {
     return fn(this.#value);
   }
 
@@ -327,9 +293,7 @@ export class Err<ErrValue> implements ResultLike<never, ErrValue> {
     return this;
   }
 
-  match<ReturnValue>(body: {
-    Err: (error: ErrValue) => ReturnValue;
-  }): ReturnValue {
+  match<U>(body: { Err: (error: E) => U }): U {
     return body.Err(this.#value);
   }
 

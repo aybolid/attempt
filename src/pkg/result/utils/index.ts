@@ -15,7 +15,7 @@ import { Err, Ok, type AsyncResult, type Result } from "..";
  * @returns An Ok instance containing the provided value.
  */
 
-export function ok<OkValue>(value: OkValue): Ok<OkValue> {
+export function ok<T>(value: T): Ok<T> {
   return new Ok(value);
 }
 
@@ -32,7 +32,7 @@ export function ok<OkValue>(value: OkValue): Ok<OkValue> {
  * @returns An Err instance containing the provided error.
  */
 
-export function err<ErrValue>(error: ErrValue): Err<ErrValue> {
+export function err<E>(error: E): Err<E> {
   return new Err(error);
 }
 
@@ -62,29 +62,27 @@ export function err<ErrValue>(error: ErrValue): Err<ErrValue> {
  */
 
 // Async with custom error mapping
-export function attempt<OkValue, ErrValue>(
-  fn: () => Promise<OkValue>,
-  errorMapper: (e: unknown) => ErrValue,
-): AsyncResult<OkValue, ErrValue>;
+export function attempt<T, E>(
+  fn: () => Promise<T>,
+  errorMapper: (e: unknown) => E,
+): AsyncResult<T, E>;
 
 // Sync with custom error mapping
-export function attempt<OkValue, ErrValue>(
-  fn: () => OkValue,
-  errorMapper: (e: unknown) => ErrValue,
-): Result<OkValue, ErrValue>;
+export function attempt<T, E>(
+  fn: () => T,
+  errorMapper: (e: unknown) => E,
+): Result<T, E>;
 
 // Async with default error mapping
-export function attempt<OkValue>(
-  fn: () => Promise<OkValue>,
-): AsyncResult<OkValue, Error>;
+export function attempt<T>(fn: () => Promise<T>): AsyncResult<T, Error>;
 
 // Sync with default error mapping
-export function attempt<OkValue>(fn: () => OkValue): Result<OkValue, Error>;
+export function attempt<T>(fn: () => T): Result<T, Error>;
 
-export function attempt<OkValue, ErrValue>(
-  fn: () => OkValue | Promise<OkValue>,
-  errorMapper?: (e: unknown) => ErrValue,
-): Result<OkValue, ErrValue | Error> | AsyncResult<OkValue, ErrValue | Error> {
+export function attempt<T, E>(
+  fn: () => T | Promise<T>,
+  errorMapper?: (e: unknown) => E,
+): Result<T, E | Error> | AsyncResult<T, E | Error> {
   const mapper = errorMapper ?? toError;
 
   try {
@@ -122,42 +120,41 @@ export function attempt<OkValue, ErrValue>(
  */
 
 // Async with custom error mapper
-export function withAttempt<OkValue, ErrValue, Args extends readonly unknown[]>(
-  fn: (...args: Args) => Promise<OkValue>,
-  errorMapper: (e: unknown) => ErrValue,
-): (...args: Args) => AsyncResult<OkValue, ErrValue>;
+export function withAttempt<T, E, Args extends readonly unknown[]>(
+  fn: (...args: Args) => Promise<T>,
+  errorMapper: (e: unknown) => E,
+): (...args: Args) => AsyncResult<T, E>;
 
 // Sync with custom error mapper
-export function withAttempt<OkValue, ErrValue, Args extends readonly unknown[]>(
-  fn: (...args: Args) => OkValue,
-  errorMapper: (e: unknown) => ErrValue,
-): (...args: Args) => Result<OkValue, ErrValue>;
+export function withAttempt<T, E, Args extends readonly unknown[]>(
+  fn: (...args: Args) => T,
+  errorMapper: (e: unknown) => E,
+): (...args: Args) => Result<T, E>;
 
 // Async without error mapper
-export function withAttempt<OkValue, Args extends readonly unknown[]>(
-  fn: (...args: Args) => Promise<OkValue>,
-): (...args: Args) => AsyncResult<OkValue, Error>;
+export function withAttempt<T, Args extends readonly unknown[]>(
+  fn: (...args: Args) => Promise<T>,
+): (...args: Args) => AsyncResult<T, Error>;
 
 // Sync without error mapper
-export function withAttempt<OkValue, Args extends readonly unknown[]>(
-  fn: (...args: Args) => OkValue,
-): (...args: Args) => Result<OkValue, Error>;
+export function withAttempt<T, Args extends readonly unknown[]>(
+  fn: (...args: Args) => T,
+): (...args: Args) => Result<T, Error>;
 
 export function withAttempt<
-  OkValue,
-  ErrValue,
+  T,
+  E,
   Args extends readonly unknown[],
-  ReturnValue =
-    | Result<OkValue, ErrValue | Error>
-    | AsyncResult<OkValue, ErrValue | Error>,
+  Out = Result<T, E | Error> | AsyncResult<T, E | Error>,
 >(
-  fn: (...args: Args) => OkValue | Promise<OkValue>,
-  errorMapper?: (e: unknown) => ErrValue,
-): (...args: Args) => ReturnValue {
+  fn: (...args: Args) => T | Promise<T>,
+  errorMapper?: (e: unknown) => E,
+): (...args: Args) => Out {
   return (...args: Args) =>
     // Note: TypeScript cannot infer the conditional return type here cleanly,
     // so we assert the result as a workaround to support both sync and async functions.
+
     errorMapper
-      ? (attempt(() => fn(...args), errorMapper) as ReturnValue)
-      : (attempt(() => fn(...args)) as ReturnValue);
+      ? (attempt(() => fn(...args), errorMapper) as Out)
+      : (attempt(() => fn(...args)) as Out);
 }

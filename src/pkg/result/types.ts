@@ -7,14 +7,12 @@ import type { Err, Ok } from ".";
  * result = ok(69);
  * result = err("meh")
  */
-export type Result<OkValue, ErrValue = Error> = Ok<OkValue> | Err<ErrValue>;
+export type Result<T, E = Error> = Ok<T> | Err<E>;
 
 /** Same as {@link Result}, but wrapped in a {@link Promise}. */
-export type AsyncResult<OkValue, ErrValue = Error> = Promise<
-  Result<OkValue, ErrValue>
->;
+export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
-export interface IntoResult<OkValue, ErrValue> {
+export interface IntoResult<T, E> {
   /** Converts this value into a {@link Result}.
    *
    * @example
@@ -25,5 +23,5 @@ export interface IntoResult<OkValue, ErrValue> {
    *   }
    * }
    */
-  intoResult(): Result<OkValue, ErrValue>;
+  intoResult(): Result<T, E>;
 }
