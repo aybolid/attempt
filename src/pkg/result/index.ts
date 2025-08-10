@@ -1,3 +1,5 @@
+import { isNullable } from "@/internal/utils";
+
 import { None, none, Some, some, type Option } from "../option";
 
 /**
@@ -502,9 +504,7 @@ export class Ok<T> implements ResultLike<T, never> {
   }
 
   transpose(): Option<Ok<NonNullable<T>>> {
-    return this.#value === null || this.#value === undefined
-      ? none()
-      : some(this as Ok<NonNullable<T>>);
+    return isNullable(this.#value) ? none() : some(this as Ok<NonNullable<T>>);
   }
 
   match<U>(body: { Ok: (value: T) => U }): U {

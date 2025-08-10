@@ -9,3 +9,7 @@ export function toError(e: unknown): Error {
 
   return new Error(String(e));
 }
+
+export function isNullable(value: unknown): value is null | undefined {
+  return value == null || value === undefined;
+}

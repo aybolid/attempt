@@ -1,3 +1,6 @@
+import type { Nullable } from "@/internal/types";
+import { isNullable } from "@/internal/utils";
+
 import { Err, Ok, type Result } from "../result";
 
 export type Option<T> = Some<T> | None;
@@ -40,6 +43,8 @@ interface OptionLike<T> {
   orElse(fn: () => Option<T>): Option<T>;
 
   match<U>(body: { Some: (value: T) => U; None: () => U }): U;
+
+  toString(): string;
 }
 
 export class OptionError extends Error {
@@ -52,6 +57,8 @@ export class OptionError extends Error {
 }
 
 export class Some<T> implements OptionLike<T> {
+  static readonly _tag = "Some";
+
   readonly #value: T;
 
   constructor(value: T) {
@@ -133,9 +140,19 @@ export class Some<T> implements OptionLike<T> {
   match<U>(body: { Some: (value: T) => U }): U {
     return body.Some(this.#value);
   }
+
+  toString(): string {
+    try {
+      return `${Some._tag}(${JSON.stringify(this.#value)})`;
+    } catch {
+      return `${Some._tag}(<non-serializable>)`;
+    }
+  }
 }
 
 export class None implements OptionLike<never> {
+  static readonly _tag = "None";
+
   static readonly instance = new None();
   private constructor() {}
 
@@ -214,6 +231,10 @@ export class None implements OptionLike<never> {
   match<U>(body: { None: () => U }): U {
     return body.None();
   }
+
+  toString(): string {
+    return None._tag;
+  }
 }
 
 export function some<T>(value: T): Some<T> {
@@ -222,4 +243,8 @@ export function some<T>(value: T): Some<T> {
 
 export function none(): None {
   return None.instance;
+}
+
+export function fromNullable<T>(value: Nullable<T>): Option<T> {
+  return isNullable(value) ? none() : some(value);
 }
