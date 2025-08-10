@@ -1,3 +1,5 @@
+import { None, none, Some, some, type Option } from "../option";
+
 /**
  * A discriminated union representing either a successful {@link Ok} value or an error {@link Err} value.
  *
@@ -130,37 +132,9 @@ interface ResultLike<T, E> {
    */
   isErrAnd(predicate: (error: E) => boolean): boolean;
 
-  /**
-   * Returns the {@link Ok} value if present, otherwise `null`.
-   *
-   * This is a safe way to extract the success value without throwing.
-   *
-   * @returns The Ok value or `null` if this is an Err.
-   *
-   * @example
-   * const success = ok(42);
-   * const failure = err('oops');
-   *
-   * console.log(success.ok()); // 42
-   * console.log(failure.ok()); // null
-   */
-  ok(): T | null;
+  ok(): Option<T>;
 
-  /**
-   * Returns the {@link Err} value if present, otherwise `null`.
-   *
-   * This is a safe way to extract the error value without throwing.
-   *
-   * @returns The Err value or `null` if this is an Ok.
-   *
-   * @example
-   * const success = ok(42);
-   * const failure = err('oops');
-   *
-   * console.log(success.err()); // null
-   * console.log(failure.err()); // 'oops'
-   */
-  err(): E | null;
+  err(): Option<E>;
 
   /**
    * Returns the {@link Ok} value, or throws {@link ResultError} if this is an {@link Err}.
@@ -375,21 +349,7 @@ interface ResultLike<T, E> {
    */
   orElse<E2>(fn: (error: E) => Result<T, E2>): Result<T, E2>;
 
-  /**
-   * Converts an {@link Ok} containing `null` or `undefined` to `null`.
-   *
-   * This is useful for working with optional values in Result chains.
-   * If the Ok value is null or undefined, returns null instead of the Result.
-   * Otherwise, returns self.
-   *
-   * @returns `null` if Ok value is null/undefined, otherwise self.
-   *
-   * @example
-   * const someValue = ok(42).transpose(); // Ok(42)
-   * const nullValue = ok(null).transpose(); // null
-   * const errorValue = err('oops').transpose(); // Err('oops')
-   */
-  transpose(): Result<NonNullable<T>, E> | null;
+  transpose(): Option<Result<NonNullable<T>, E>>;
 
   /**
    * Matches the result against the provided handlers.
@@ -489,12 +449,12 @@ export class Ok<T> implements ResultLike<T, never> {
     return false;
   }
 
-  ok(): T {
-    return this.#value;
+  ok(): Some<T> {
+    return some(this.#value);
   }
 
-  err(): null {
-    return null;
+  err(): None {
+    return none();
   }
 
   unwrap(): T {
@@ -541,10 +501,10 @@ export class Ok<T> implements ResultLike<T, never> {
     return this;
   }
 
-  transpose(): Ok<NonNullable<T>> | null {
+  transpose(): Option<Ok<NonNullable<T>>> {
     return this.#value === null || this.#value === undefined
-      ? null
-      : (this as Ok<NonNullable<T>>);
+      ? none()
+      : some(this as Ok<NonNullable<T>>);
   }
 
   match<U>(body: { Ok: (value: T) => U }): U {
@@ -603,12 +563,12 @@ export class Err<E> implements ResultLike<never, E> {
     return predicate(this.#value);
   }
 
-  ok(): null {
-    return null;
+  ok(): None {
+    return none();
   }
 
-  err(): E {
-    return this.#value;
+  err(): Some<E> {
+    return some(this.#value);
   }
 
   unwrap(): never {
@@ -655,8 +615,8 @@ export class Err<E> implements ResultLike<never, E> {
     return fn(this.#value);
   }
 
-  transpose(): this {
-    return this;
+  transpose(): Option<this> {
+    return some(this);
   }
 
   match<U>(body: { Err: (error: E) => U }): U {
