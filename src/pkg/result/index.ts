@@ -440,9 +440,9 @@ interface ResultLike<T, E> {
 export class ResultError extends Error {
   override name = "ResultError";
 
-  /** Checks if the given error is an instance of ResultError. */
-  static isResultError(error: unknown): error is ResultError {
-    return error instanceof ResultError;
+  /** Checks if the given value is an instance of ResultError. */
+  static isResultError(value: unknown): value is ResultError {
+    return value instanceof ResultError;
   }
 }
 

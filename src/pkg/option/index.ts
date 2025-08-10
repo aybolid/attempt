@@ -1,4 +1,6 @@
-export * from "./types";
+import { Err, Ok, type Result } from "../result";
+
+export type Option<T> = Some<T> | None;
 
 interface OptionLike<T> {
   isSome(): this is Some<T>;
@@ -9,7 +11,44 @@ interface OptionLike<T> {
 
   isNoneOr(predicate: (value: T) => boolean): boolean;
 
+  expect(message: string): T;
+
+  unwrap(): T;
+
+  unwrapOr(defaultValue: T): T;
+
+  unwrapOrElse(fn: () => T): T;
+
+  map<U>(fn: (value: T) => U): Option<U>;
+
+  mapOr<U>(defaultValue: U, fn: (value: T) => U): U;
+
+  mapOrElse<U>(defaultFn: () => U, fn: (value: T) => U): U;
+
+  okOr<E>(err: E): Result<T, E>;
+
+  okOrElse<E>(fn: () => E): Result<T, E>;
+
+  filter(predicate: (value: T) => boolean): Option<T>;
+
+  and<U>(other: Option<U>): Option<U>;
+
+  andThen<U>(fn: (value: T) => Option<U>): Option<U>;
+
+  or(other: Option<T>): Option<T>;
+
+  orElse(fn: () => Option<T>): Option<T>;
+
   match<U>(body: { Some: (value: T) => U; None: () => U }): U;
+}
+
+export class OptionError extends Error {
+  override name = "OptionError";
+
+  /** Checks if the given value is an instance of OptionError. */
+  static isOptionError(value: unknown): value is OptionError {
+    return value instanceof OptionError;
+  }
 }
 
 export class Some<T> implements OptionLike<T> {
@@ -35,12 +74,71 @@ export class Some<T> implements OptionLike<T> {
     return predicate(this.#value);
   }
 
+  expect(_: string): T {
+    return this.#value;
+  }
+
+  unwrap(): T {
+    return this.#value;
+  }
+
+  unwrapOr(_: T): T {
+    return this.#value;
+  }
+
+  unwrapOrElse(_: () => T): T {
+    return this.#value;
+  }
+
+  map<U>(fn: (value: T) => U): Option<U> {
+    return new Some(fn(this.#value));
+  }
+
+  mapOr<U>(_: U, fn: (value: T) => U): U {
+    return fn(this.#value);
+  }
+
+  mapOrElse<U>(_: () => U, fn: (value: T) => U): U {
+    return fn(this.#value);
+  }
+
+  okOr<E>(_: E): Result<T, E> {
+    return new Ok(this.#value);
+  }
+
+  okOrElse<E>(_: () => E): Result<T, E> {
+    return new Ok(this.#value);
+  }
+
+  and<U>(other: Option<U>): Option<U> {
+    return other;
+  }
+
+  andThen<U>(fn: (value: T) => Option<U>): Option<U> {
+    return fn(this.#value);
+  }
+
+  filter(predicate: (value: T) => boolean): Option<T> {
+    return predicate(this.#value) ? this : None.instance;
+  }
+
+  or(_: Option<T>): this {
+    return this;
+  }
+
+  orElse(_: () => Option<T>): this {
+    return this;
+  }
+
   match<U>(body: { Some: (value: T) => U }): U {
     return body.Some(this.#value);
   }
 }
 
 export class None implements OptionLike<never> {
+  static readonly instance = new None();
+  private constructor() {}
+
   isSome(): this is Some<never> {
     return false;
   }
@@ -49,12 +147,68 @@ export class None implements OptionLike<never> {
     return true;
   }
 
-  isSomeAnd(_: (value: never) => boolean): boolean {
+  isSomeAnd(_: (_: never) => boolean): boolean {
     return false;
   }
 
-  isNoneOr(_: (value: never) => boolean): boolean {
+  isNoneOr(_: (_: never) => boolean): boolean {
     return true;
+  }
+
+  expect(message: string): never {
+    throw new OptionError(message);
+  }
+
+  unwrap(): never {
+    throw new OptionError("Unwrap called on None");
+  }
+
+  unwrapOr<T>(defaultValue: T): T {
+    return defaultValue;
+  }
+
+  unwrapOrElse<T>(fn: () => T): T {
+    return fn();
+  }
+
+  map<U>(_: (_: never) => U): this {
+    return this;
+  }
+
+  mapOr<U>(defaultValue: U, _: (_: never) => U): U {
+    return defaultValue;
+  }
+
+  mapOrElse<U>(defaultFn: () => U, _: (_: never) => U): U {
+    return defaultFn();
+  }
+
+  okOr<E>(err: E): Result<never, E> {
+    return new Err(err);
+  }
+
+  okOrElse<E>(fn: () => E): Result<never, E> {
+    return new Err(fn());
+  }
+
+  and<U>(_: Option<U>): this {
+    return this;
+  }
+
+  andThen<U>(_: (_: never) => Option<U>): this {
+    return this;
+  }
+
+  filter(_: (_: never) => boolean): this {
+    return this;
+  }
+
+  or<T>(other: Option<T>): Option<T> {
+    return other;
+  }
+
+  orElse<T>(fn: () => Option<T>): Option<T> {
+    return fn();
   }
 
   match<U>(body: { None: () => U }): U {
@@ -67,5 +221,5 @@ export function some<T>(value: T): Some<T> {
 }
 
 export function none(): None {
-  return new None();
+  return None.instance;
 }
