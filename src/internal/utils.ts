@@ -1,5 +1,5 @@
-export function isPromise<T = unknown>(obj: unknown): obj is Promise<T> {
-  return !!obj && typeof (obj as any).then === "function";
+export function isPromise<T = unknown>(value: unknown): value is Promise<T> {
+  return !!value && typeof (value as any).then === "function";
 }
 
 export function toError(e: unknown): Error {
