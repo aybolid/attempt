@@ -1,5 +1,4 @@
-import { fromNullable, type Option, type Result } from "@/pkg";
-import { match } from "@/pkg/utils";
+import { fromNullable, type Option, type Result, match } from "@/pkg";
 
 type User = {
   id: string;

@@ -3,9 +3,9 @@ import { err, ok, type AsyncResult, type IntoResult, type Result } from "@/pkg";
 class HttpError extends Error implements IntoResult<never, HttpError> {
   override name = "HttpError";
 
-  readonly response?: Response;
+  readonly response: Response;
 
-  constructor(message: string, response?: Response) {
+  constructor(message: string, response: Response) {
     if (response) {
       console.assert(
         !response.ok,
@@ -21,9 +21,8 @@ class HttpError extends Error implements IntoResult<never, HttpError> {
     return new HttpError(message, response);
   }
 
-  static fromAnyThrow(e: unknown): HttpError {
-    const message = e instanceof Error ? e.message : `Unknown error: ${e}`;
-    return new HttpError(message);
+  static isHttpError(e: unknown): e is HttpError {
+    return e instanceof HttpError;
   }
 
   intoResult(): Result<never, HttpError> {
@@ -31,21 +30,16 @@ class HttpError extends Error implements IntoResult<never, HttpError> {
   }
 
   async log(): Promise<void> {
-    if (!this.response) {
-      console.error("Http request failed with unexpected error:");
-      console.error(`${this.name}: ${this.message}`);
-    } else {
-      console.error(
-        "Http request failed with status:",
-        this.response.status,
-        this.response.statusText,
-      );
-      console.log(`\tData: ${await this.response.text()}`);
-    }
+    console.error(
+      "Http request failed with status:",
+      this.response.status,
+      this.response.statusText,
+    );
+    console.error(`\tData: ${await this.response.text()}`);
   }
 }
 
-async function callApi(url: string): AsyncResult<Response, HttpError> {
+async function callApi(url: string): AsyncResult<Response, HttpError | Error> {
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -53,7 +47,7 @@ async function callApi(url: string): AsyncResult<Response, HttpError> {
     }
     return ok(response);
   } catch (e) {
-    return HttpError.fromAnyThrow(e).intoResult();
+    return err(e instanceof Error ? e : new Error(String(e)));
   }
 }
 
@@ -65,7 +59,8 @@ for (const status of STATUSES) {
   const callResult = await callApi(URL + `/${status}`);
 
   callResult.match({
-    Err: (err) => err.log(),
+    Err: (err) =>
+      HttpError.isHttpError(err) ? err.log() : console.error(err.message),
     Ok: async (response) => {
       console.log("Successful response:", response.status, response.statusText);
       console.log(`\tData: ${await response.text()}`);

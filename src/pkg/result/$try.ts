@@ -1,12 +1,11 @@
 import { isPromise } from "@/internal/utils";
-import type { AsyncResult, Err, Result } from "./result";
+import type { InferErrTypes, InferOkTypes } from "@/internal/types";
 
-type InferOkTypes<R> = R extends Result<infer T, unknown> ? T : never;
-type InferErrTypes<R> = R extends Result<unknown, infer E> ? E : never;
+import type { AsyncResult, Err, Result } from "./result";
 
 type SafeUnwrapOperator = <T, E>(result: Result<T, E>) => Generator<Err<E>, T>;
 
-function unwrapOperator<T, E>(result: Result<T, E>): Generator<Err<E>, T> {
+function $unwrap<T, E>(result: Result<T, E>): Generator<Err<E>, T> {
   return (function* () {
     if (result.isOk()) {
       return result.unwrap();
@@ -57,7 +56,7 @@ export function $try<T, E>(
         $: SafeUnwrapOperator;
       }) => AsyncGenerator<Err<E>, Result<T, E>>),
 ): Result<T, E> | AsyncResult<T, E> {
-  const n = body({ $: unwrapOperator }).next();
+  const n = body({ $: $unwrap }).next();
   if (isPromise(n)) {
     return n.then((n) => n.value);
   }

@@ -1,36 +1,33 @@
-import { toError } from "@/internal/utils";
-import { $try, err, ok, type Result } from "@/pkg";
+import { $try, err, ok, type IntoResult, type Result, match } from "@/pkg";
 
-const parseNumber = (input: string): Result<number, string> => {
+class NumberParsingError
+  extends Error
+  implements IntoResult<never, NumberParsingError>
+{
+  override name = "NumberParsingError";
+
+  intoResult(): Result<never, NumberParsingError> {
+    return err(this);
+  }
+}
+
+const parseNumber = (input: string): Result<number, NumberParsingError> => {
   const number = parseInt(input, 10);
   if (isNaN(number)) {
-    return err(`Invalid number: ${input}`);
+    return new NumberParsingError(`Invalid number: ${input}`).intoResult();
   }
   return ok(number);
 };
 
-const parseJson = <T>(input: string): Result<T> => {
-  try {
-    return ok(JSON.parse(input));
-  } catch (error) {
-    return err(toError(error));
-  }
-};
+const sumNumeric = (x: string, y: string) =>
+  $try(function* ({ $ }) {
+    const parsedX = yield* $(parseNumber(x));
+    const parsedY = yield* $(parseNumber(y));
 
-const sum = $try(function* ({ $ }) {
-  const x = yield* $(parseNumber("12"));
-  const y = yield* $(parseJson<number>("12"));
+    return ok(parsedX + parsedY);
+  });
 
-  return ok(x + y);
+match(sumNumeric("12", "12"), {
+  Ok: (result) => console.log(`Sum is ${result}`),
+  Err: (error) => console.error(`Failed to calculate sum: ${error}`),
 });
-
-console.log(sum.toString());
-
-const sum2 = await $try(async function* ({ $ }) {
-  // const x = yield* $(await (async () => parseNumber("12"))());
-  const y = yield* $(await (async () => parseJson<number>("12"))());
-
-  return ok(y + 2);
-});
-
-console.log(sum2.toString());
