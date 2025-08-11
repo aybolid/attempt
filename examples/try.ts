@@ -20,9 +20,9 @@ const parseNumber = (input: string): Result<number, NumberParsingError> => {
 };
 
 const sumNumeric = (x: string, y: string) =>
-  $try(function* ({ $ }) {
-    const parsedX = yield* $(parseNumber(x));
-    const parsedY = yield* $(parseNumber(y));
+  $try(function* () {
+    const parsedX = yield* parseNumber(x);
+    const parsedY = yield* parseNumber(y);
 
     return ok(parsedX + parsedY);
   });

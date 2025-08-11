@@ -2,7 +2,9 @@ import { Err, Ok, type Result } from "../result";
 
 export type Option<T> = Some<T> | None;
 
-interface OptionLike<T> {
+type OptionGenerator<T> = Generator<None, T>;
+
+interface OptionLike<T> extends Iterable<None, T> {
   isSome(): this is Some<T>;
 
   isNone(): this is None;
@@ -145,6 +147,10 @@ export class Some<T> implements OptionLike<T> {
       return `${Some._tag}(<non-serializable>)`;
     }
   }
+
+  *[Symbol.iterator](): OptionGenerator<T> {
+    return this.#value;
+  }
 }
 
 export class None implements OptionLike<never> {
@@ -231,5 +237,10 @@ export class None implements OptionLike<never> {
 
   toString(): string {
     return None._tag;
+  }
+
+  *[Symbol.iterator](): OptionGenerator<never> {
+    yield this;
+    throw new Error("Do not use Option generator outside of `$maybe`");
   }
 }

@@ -10,9 +10,9 @@ const parseNumber = (input: string): Option<number> => {
 };
 
 const sumNumeric = (x: string, y: string) =>
-  $maybe(function* ({ $ }) {
-    const parsedX = yield* $(parseNumber(x));
-    const parsedY = yield* $(parseNumber(y));
+  $maybe(function* () {
+    const parsedX = yield* parseNumber(x);
+    const parsedY = yield* parseNumber(y);
 
     return some(parsedX + parsedY);
   });

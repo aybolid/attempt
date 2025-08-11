@@ -39,6 +39,8 @@ export type Result<T, E = Error> = Ok<T> | Err<E>;
  */
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
+type ResultGenerator<T, E> = Generator<Err<E>, T>;
+
 /**
  * Interface for types that can be converted into a {@link Result}.
  *
@@ -75,7 +77,7 @@ export interface IntoResult<T, E> {
  * @template T - The type of the success value.
  * @template E - The type of the error value.
  */
-interface ResultLike<T, E> {
+interface ResultLike<T, E> extends Iterable<Err<E>, T> {
   /**
    * Type guard that returns `true` if this is an {@link Ok} result.
    *
@@ -518,6 +520,10 @@ export class Ok<T> implements ResultLike<T, never> {
       return `${Ok._tag}(<non-serializable>)`;
     }
   }
+
+  *[Symbol.iterator](): ResultGenerator<T, never> {
+    return this.#value;
+  }
 }
 
 /**
@@ -629,5 +635,10 @@ export class Err<E> implements ResultLike<never, E> {
     } catch {
       return `${Err._tag}(<non-serializable>)`;
     }
+  }
+
+  *[Symbol.iterator](): ResultGenerator<never, E> {
+    yield this;
+    throw new Error("Do not use Result generator outside of `$try`");
   }
 }
