@@ -1,5 +1,4 @@
-import { match, type Option, none, some } from "@/pkg";
-import { $maybe } from "@/pkg/option/$maybe";
+import { match, type Option, none, some, $maybe } from "@/pkg";
 
 const parseNumber = (input: string): Option<number> => {
   const number = parseInt(input, 10);
