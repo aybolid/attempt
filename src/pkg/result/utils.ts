@@ -10,7 +10,7 @@ import { Err, Ok } from "./result";
  *
  * @example
  * const result = ok(42);
- * console.log(result.isOk()); // true
+ * console.log(result.isOk());   // true
  * console.log(result.unwrap()); // 42
  */
 export function ok<T, E = never>(value: T): Ok<T, E>;
@@ -29,7 +29,7 @@ export function ok<T, E = never>(value: T): Ok<T, E> {
  *
  * @example
  * const failure = err("Network error");
- * console.log(failure.isErr()); // true
+ * console.log(failure.isErr());     // true
  * console.log(failure.unwrapErr()); // "Network error"
  */
 export function err<T = never, E extends string = string>(err: E): Err<T, E>;
