@@ -1,11 +1,17 @@
 import type { Nullable } from "@/internal/types";
-import { Err, Ok, type IntoResult, type Result } from "../result";
 import { isNullable } from "@/internal/utils";
+
+import { Err, Ok, type IntoResult, type Result } from "../result";
+
+import * as utils from "./utils";
 
 /** Represents an optional value. */
 export type Option<T> = Some<T> | None;
 
 export namespace Option {
+  export const some = utils.some;
+  export const none = utils.none;
+
   export function from<T>(convertable: IntoOption<T>): Option<T> {
     return convertable.intoOption();
   }

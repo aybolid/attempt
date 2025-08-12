@@ -1,7 +1,8 @@
 import { isNullable } from "@/internal/utils";
 
 import { None, Some, type IntoOption, type Option } from "../option";
-import { err, ok } from "./utils";
+
+import * as utils from "./utils";
 
 /**
  * Represents the result of an operation that can either succeed with a value (`Ok`) or fail with an error (`Err`).
@@ -21,6 +22,9 @@ export type Result<T, E = Error> = Ok<T, E> | Err<T, E>;
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
 export namespace Result {
+  export const ok = utils.ok;
+  export const err = utils.err;
+
   export function from<T, E>(convertable: IntoResult<T, E>): Result<T, E> {
     return convertable.intoResult();
   }
@@ -35,9 +39,9 @@ export namespace Result {
     return (...args) => {
       try {
         const result = fn(...args) as ReturnType<Fn>;
-        return ok(result);
+        return new Ok(result);
       } catch (e) {
-        return err(errorMapper(e));
+        return new Err(errorMapper(e));
       }
     };
   }

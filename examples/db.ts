@@ -24,14 +24,14 @@ const USERS: Array<User> = [
   },
 ];
 
-function getUserResultById(id: string): Result<User> {
+function getUserById(id: string): Result<User> {
   return Option.fromNullable(USERS.find((user) => user.id === id)).okOr(
     new Error(`User not found (id: ${id})`),
   );
 }
 
 for (const id of ["1", "2", "3", "4", "5"]) {
-  const userResult = getUserResultById(id);
+  const userResult = getUserById(id);
 
   console.log(userResult.toString());
 
@@ -42,12 +42,8 @@ for (const id of ["1", "2", "3", "4", "5"]) {
 }
 console.log();
 
-function getUserOptionById(id: string): Option<User> {
-  return getUserResultById(id).ok();
-}
-
 for (const id of ["1", "2", "3", "4", "5"]) {
-  const userOption = getUserOptionById(id);
+  const userOption = Option.from(getUserById(id));
 
   console.log(userOption.toString());
 
