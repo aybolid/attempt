@@ -1,7 +1,7 @@
 import type { Nullable } from "@/internal/types";
 import { isNullable } from "@/internal/utils";
 
-import { Err, Ok, type IntoResult, type Result } from "../result";
+import { Err, Ok, type Result } from "../result";
 
 import * as utils from "./utils";
 
