@@ -24,10 +24,6 @@ const sumNumeric = (x: string, y: string) =>
     const parsedX = yield* parseNumber(x);
     const parsedY = yield* parseNumber(y).mapErr(() => "fail");
 
-    if (parsedY > 12) {
-      return err(12);
-    }
-
     return ok(parsedX + parsedY);
   });
 
