@@ -1,7 +1,4 @@
-import type { Nullable } from "@/internal/types";
-import { isNullable } from "@/internal/utils";
-
-import { None, Some, type Option } from "./option";
+import { None, Some } from "./option";
 
 /**
  * Wraps a value in a `Some`.
@@ -25,18 +22,4 @@ export function some<T>(value: T): Some<T> {
  */
 export function none(): None {
   return None.instance;
-}
-
-/**
- * Converts a nullable value (`null` or `undefined`) into an `Option`.
- *
- * @template T The type of the value when non-null.
- *
- * @example
- * fromNullable("hello");   // Some("hello")
- * fromNullable(null);      // None
- * fromNullable(undefined); // None
- */
-export function fromNullable<T>(value: Nullable<T>): Option<T> {
-  return isNullable(value) ? none() : some(value);
 }

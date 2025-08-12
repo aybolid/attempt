@@ -1,4 +1,4 @@
-import { fromNullable, type Option, type Result, match } from "@/pkg";
+import { Option, type Result, match } from "@/pkg";
 
 type User = {
   id: string;
@@ -25,7 +25,7 @@ const USERS: Array<User> = [
 ];
 
 function getUserResultById(id: string): Result<User> {
-  return fromNullable(USERS.find((user) => user.id === id)).okOr(
+  return Option.fromNullable(USERS.find((user) => user.id === id)).okOr(
     new Error(`User not found (id: ${id})`),
   );
 }

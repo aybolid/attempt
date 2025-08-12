@@ -1,14 +1,10 @@
 import { isNullable } from "@/internal/utils";
 
 import { None, none, Some, some, type Option } from "../option";
+import { err, ok } from "./utils";
 
 /**
  * Represents the result of an operation that can either succeed with a value (`Ok`) or fail with an error (`Err`).
- *
- * Similar to Rust's `Result<T, E>` type.
- *
- * @template T - The type of the successful value.
- * @template E - The type of the error value (defaults to `Error`).
  *
  * @example
  * const okResult: Result<number> = new Ok(42);
@@ -23,6 +19,22 @@ export type Result<T, E = Error> = Ok<T, E> | Err<T, E>;
 
 /** A `Promise` that resolves to a {@link Result}. */
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
+
+export namespace Result {
+  export function fromThrowable<Fn extends (...args: readonly any[]) => any, E>(
+    fn: Fn,
+    errorMapper: (e: unknown) => E,
+  ): (...args: Parameters<Fn>) => Result<ReturnType<Fn>, E> {
+    return (...args) => {
+      try {
+        const result = fn(...args);
+        return ok(result);
+      } catch (e) {
+        return err(errorMapper(e));
+      }
+    };
+  }
+}
 
 type ResultGenerator<T, E> = Generator<Err<never, E>, T>;
 

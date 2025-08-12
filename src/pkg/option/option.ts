@@ -1,11 +1,44 @@
+import type { Nullable } from "@/internal/types";
 import { Err, Ok, type Result } from "../result";
+import { isNullable } from "@/internal/utils";
 
-/**
- * Represents an optional value.
- *
- * @template T The type of the wrapped value.
- */
+/** Represents an optional value. */
 export type Option<T> = Some<T> | None;
+
+export namespace Option {
+  /**
+   * Converts a nullable value (`null` or `undefined`) into an `Option`.
+   *
+   * @template T The type of the value when non-null.
+   *
+   * @example
+   * Option.fromNullable("hello");   // Some("hello")
+   * Option.fromNullable(null);      // None
+   * Option.fromNullable(undefined); // None
+   */
+  export function fromNullable<T>(value: Nullable<T>): Option<T> {
+    return isNullable(value) ? None.instance : new Some(value);
+  }
+
+  /**
+   * Converts a value into an `Option`. `Some` if the value satisfies a predicate, `None` otherwise.
+   *
+   * @template T The type of the value.
+   *
+   * @param value The value to convert.
+   * @param predicate The predicate to check.
+   *
+   * @example
+   * Option.fromPredicate(5, v => v > 3); // Some(5)
+   * Option.fromPredicate(2, v => v > 3); // None
+   */
+  export function fromPredicate<T>(
+    value: T,
+    predicate: (value: T) => boolean,
+  ): Option<T> {
+    return predicate(value) ? new Some(value) : None.instance;
+  }
+}
 
 type OptionGenerator<T> = Generator<None, T>;
 

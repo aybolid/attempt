@@ -1,4 +1,4 @@
-import { $try, err, ok, type IntoResult, type Result, match } from "@/pkg";
+import { $try, err, ok, Result, type IntoResult, match } from "@/pkg";
 
 class NumberParsingError
   extends Error
