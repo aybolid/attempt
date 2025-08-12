@@ -33,7 +33,7 @@ export interface IntoOption<T> {
   intoOption(): Option<T>;
 }
 
-interface OptionLike<T> extends Iterable<None, T>, IntoResult<T, Error> {
+interface OptionLike<T> extends Iterable<None, T> {
   isSome(): this is Some<T>;
 
   isNone(): this is None;
@@ -176,10 +176,6 @@ export class Some<T> implements OptionLike<T> {
     }
   }
 
-  intoResult(): Ok<T, never> {
-    return new Ok(this.#value);
-  }
-
   *[Symbol.iterator](): OptionGenerator<T> {
     return this.#value;
   }
@@ -269,10 +265,6 @@ export class None implements OptionLike<never> {
 
   toString(): string {
     return None._tag;
-  }
-
-  intoResult(): Err<never, Error> {
-    return new Err(new Error("No value"));
   }
 
   *[Symbol.iterator](): OptionGenerator<never> {
