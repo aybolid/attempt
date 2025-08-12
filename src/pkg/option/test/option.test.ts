@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { None, Option, Some } from "../option";
+import { None, Option, OptionError, Some } from "../option";
 
 const expectNoneSingleton = (value: unknown) => {
   expect(value).toBeInstanceOf(None);
@@ -104,5 +104,50 @@ describe("check", () => {
     const predicate = vi.fn();
     opt.isNoneOr(predicate);
     expect(predicate).not.toBeCalled();
+  });
+});
+
+describe("get", () => {
+  test(`${Some.name}.${Some.prototype.expect.name} should return contained value`, () => {
+    const opt = Option.some("value");
+    expect(opt.expect("")).toBe("value");
+  });
+  test(`${None.name}.${None.prototype.expect.name} should throw ${OptionError.name} with provided message`, () => {
+    const opt = Option.none();
+    expect(() => opt.expect("bad")).toThrow(OptionError);
+    expect(() => opt.expect("bad")).toThrow("bad");
+  });
+
+  test(`${Some.name}.${Some.prototype.unwrap.name} should return contained value`, () => {
+    const opt = Option.some(320);
+    expect(opt.unwrap()).toBe(320);
+  });
+  test(`${None.name}.${None.prototype.unwrap.name} should throw ${OptionError.name}`, () => {
+    const opt = Option.none();
+    expect(() => opt.unwrap()).toThrow(OptionError);
+  });
+
+  test(`${Some.name}.${Some.prototype.unwrapOr.name} should return contained value`, () => {
+    const opt = Option.some(320);
+    expect(opt.unwrapOr(0)).toBe(320);
+  });
+  test(`${None.name}.${None.prototype.unwrapOr.name} should return default value`, () => {
+    const opt = Option.none();
+    expect(opt.unwrapOr(0)).toBe(0);
+  });
+
+  test(`${Some.name}.${Some.prototype.unwrapOrElse.name} should return contained value`, () => {
+    const opt = Option.some(320);
+    expect(opt.unwrapOrElse(() => 0)).toBe(320);
+  });
+  test(`${Some.name}.${Some.prototype.unwrapOrElse.name} should never call default value function`, () => {
+    const opt = Option.some(320);
+    const defaultValueFn = vi.fn();
+    opt.unwrapOrElse(defaultValueFn);
+    expect(defaultValueFn).not.toBeCalled();
+  });
+  test(`${None.name}.${None.prototype.unwrapOrElse.name} should return computed default value`, () => {
+    const opt = Option.none();
+    expect(opt.unwrapOrElse(() => 0)).toBe(0);
   });
 });
