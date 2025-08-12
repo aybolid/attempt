@@ -16,7 +16,7 @@ import { None, none, Some, some, type Option } from "../option";
  * result = ok(69);     // Ok<number>
  * result = err("meh"); // Err<string>
  */
-export type Result<T, E = Error> = Ok<T> | Err<E>;
+export type Result<T, E = Error> = Ok<T, E> | Err<T, E>;
 
 /**
  * An asynchronous variant of {@link Result}, wrapped in a {@link Promise}.
@@ -39,7 +39,7 @@ export type Result<T, E = Error> = Ok<T> | Err<E>;
  */
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
-type ResultGenerator<T, E> = Generator<Err<E>, T>;
+type ResultGenerator<T, E> = Generator<Err<never, E>, T>;
 
 /**
  * Interface for types that can be converted into a {@link Result}.
@@ -77,7 +77,7 @@ export interface IntoResult<T, E> {
  * @template T - The type of the success value.
  * @template E - The type of the error value.
  */
-interface ResultLike<T, E> extends Iterable<Err<E>, T> {
+interface ResultLike<T, E> extends Iterable<Err<never, E>, T> {
   /**
    * Type guard that returns `true` if this is an {@link Ok} result.
    *
@@ -94,7 +94,7 @@ interface ResultLike<T, E> extends Iterable<Err<E>, T> {
    *   console.error(result.unwrapErr());
    * }
    */
-  isOk(): this is Ok<T>;
+  isOk(): this is Ok<T, E>;
 
   /**
    * Type guard that returns `true` if this is an {@link Err} result.
@@ -109,7 +109,7 @@ interface ResultLike<T, E> extends Iterable<Err<E>, T> {
    *   console.error('Operation failed:', result.unwrapErr());
    * }
    */
-  isErr(): this is Err<E>;
+  isErr(): this is Err<T, E>;
 
   /**
    * Returns `true` if this is an {@link Ok} result and its value satisfies the predicate.
@@ -423,7 +423,7 @@ export class ResultError extends Error {
  * console.log(result.isOk()); // true
  * console.log(result.unwrap()); // 42
  */
-export class Ok<T> implements ResultLike<T, never> {
+export class Ok<T, E> implements ResultLike<T, E> {
   static _tag = "Ok" as const;
 
   readonly #value: T;
@@ -441,7 +441,7 @@ export class Ok<T> implements ResultLike<T, never> {
     return false;
   }
 
-  isOk(): this is Ok<T> {
+  isOk(): this is Ok<T, E> {
     return true;
   }
 
@@ -481,7 +481,7 @@ export class Ok<T> implements ResultLike<T, never> {
     throw new ResultError(`${message}: ${this.#value}`);
   }
 
-  map<T2>(fn: (value: T) => T2): Ok<T2> {
+  map<T2>(fn: (value: T) => T2): Ok<T2, E> {
     return new Ok(fn(this.#value));
   }
 
@@ -505,8 +505,10 @@ export class Ok<T> implements ResultLike<T, never> {
     return this;
   }
 
-  transpose(): Option<Ok<NonNullable<T>>> {
-    return isNullable(this.#value) ? none() : some(this as Ok<NonNullable<T>>);
+  transpose(): Option<Ok<NonNullable<T>, E>> {
+    return isNullable(this.#value)
+      ? none()
+      : some(this as Ok<NonNullable<T>, E>);
   }
 
   match<U>(body: { Ok: (value: T) => U }): U {
@@ -539,7 +541,7 @@ export class Ok<T> implements ResultLike<T, never> {
  * console.log(result.isErr()); // true
  * console.log(result.unwrapErr()); // 'Something went wrong'
  */
-export class Err<E> implements ResultLike<never, E> {
+export class Err<T, E> implements ResultLike<never, E> {
   static _tag = "Err" as const;
 
   readonly #value: E;
@@ -557,7 +559,7 @@ export class Err<E> implements ResultLike<never, E> {
     return false;
   }
 
-  isErr(): this is Err<E> {
+  isErr(): this is Err<T, E> {
     return true;
   }
 
@@ -601,7 +603,7 @@ export class Err<E> implements ResultLike<never, E> {
     return this;
   }
 
-  mapErr<E2>(fn: (error: E) => E2): Err<E2> {
+  mapErr<E2>(fn: (error: E) => E2): Err<T, E2> {
     return new Err(fn(this.#value));
   }
 
