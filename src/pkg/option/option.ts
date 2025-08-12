@@ -19,7 +19,7 @@ export namespace Option {
     return isNullable(value) ? None.instance : new Some(value);
   }
 
-  export function fromPredicate<T>(
+  export function fromPredicate<T extends NonNullable<unknown>>(
     value: T,
     predicate: (value: T) => boolean,
   ): Option<T> {
@@ -187,7 +187,7 @@ export class None implements OptionLike<never> {
   static readonly instance = new None();
   private constructor() {}
 
-  isSome(): this is Some<never> {
+  isSome(): this is never {
     return false;
   }
 
