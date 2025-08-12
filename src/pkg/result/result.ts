@@ -1,6 +1,6 @@
 import { isNullable } from "@/internal/utils";
 
-import { None, none, Some, some, type Option } from "../option";
+import { None, Some, type IntoOption, type Option } from "../option";
 import { err, ok } from "./utils";
 
 /**
@@ -21,13 +21,20 @@ export type Result<T, E = Error> = Ok<T, E> | Err<T, E>;
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
 export namespace Result {
-  export function fromThrowable<Fn extends (...args: readonly any[]) => any, E>(
+  export function from<T, E>(convertable: IntoResult<T, E>): Result<T, E> {
+    return convertable.intoResult();
+  }
+
+  export function fromThrowable<
+    Fn extends (...args: readonly unknown[]) => unknown,
+    E,
+  >(
     fn: Fn,
     errorMapper: (e: unknown) => E,
   ): (...args: Parameters<Fn>) => Result<ReturnType<Fn>, E> {
     return (...args) => {
       try {
-        const result = fn(...args);
+        const result = fn(...args) as ReturnType<Fn>;
         return ok(result);
       } catch (e) {
         return err(errorMapper(e));
@@ -49,7 +56,7 @@ export interface IntoResult<T, E> {
  * @template T - The type of the success value.
  * @template E - The type of the error value.
  */
-interface ResultLike<T, E> extends Iterable<Err<never, E>, T> {
+interface ResultLike<T, E> extends Iterable<Err<never, E>, T>, IntoOption<T> {
   /**
    * Returns `true` if the result is `Ok`.
    * @example
@@ -191,11 +198,11 @@ export class Ok<T, E> implements ResultLike<T, E> {
   }
 
   ok(): Some<T> {
-    return some(this.#value);
+    return new Some(this.#value);
   }
 
   err(): None {
-    return none();
+    return None.instance;
   }
 
   unwrap(): T {
@@ -244,8 +251,8 @@ export class Ok<T, E> implements ResultLike<T, E> {
 
   transpose(): Option<Ok<NonNullable<T>, E>> {
     return isNullable(this.#value)
-      ? none()
-      : some(this as Ok<NonNullable<T>, E>);
+      ? None.instance
+      : new Some(this as Ok<NonNullable<T>, E>);
   }
 
   match<U>(body: { Ok: (value: T) => U }): U {
@@ -258,6 +265,10 @@ export class Ok<T, E> implements ResultLike<T, E> {
     } catch {
       return `${Ok._tag}(<non-serializable>)`;
     }
+  }
+
+  intoOption(): Some<T> {
+    return new Some(this.#value);
   }
 
   *[Symbol.iterator](): ResultGenerator<T, never> {
@@ -306,11 +317,11 @@ export class Err<T, E> implements ResultLike<never, E> {
   }
 
   ok(): None {
-    return none();
+    return None.instance;
   }
 
   err(): Some<E> {
-    return some(this.#value);
+    return new Some(this.#value);
   }
 
   unwrap(): never {
@@ -358,7 +369,7 @@ export class Err<T, E> implements ResultLike<never, E> {
   }
 
   transpose(): Option<this> {
-    return some(this);
+    return new Some(this);
   }
 
   match<U>(body: { Err: (error: E) => U }): U {
@@ -371,6 +382,10 @@ export class Err<T, E> implements ResultLike<never, E> {
     } catch {
       return `${Err._tag}(<non-serializable>)`;
     }
+  }
+
+  intoOption(): None {
+    return None.instance;
   }
 
   *[Symbol.iterator](): ResultGenerator<never, E> {

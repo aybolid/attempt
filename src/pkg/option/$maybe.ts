@@ -7,8 +7,6 @@ import type { None, Option } from "./option";
  * Runs a generator or async generator that can yield `None` to short-circuit computations,
  * returning the first `None` or the final `Some` result.
  *
- * Inspired by Rust's `?` operator for `Option`.
- *
  * The generator should `yield*` `Option` values — if any yield is `None`,
  * execution stops and that `None` is returned. Otherwise, the final `Some` is returned.
  *

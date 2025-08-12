@@ -14,7 +14,8 @@ class NumberParsingError
 const parseNumber = (input: string): Result<number, NumberParsingError> => {
   const number = parseInt(input, 10);
   if (isNaN(number)) {
-    return new NumberParsingError(`Invalid number: ${input}`).intoResult();
+    const error = new NumberParsingError(`Invalid number: ${input}`);
+    return Result.from(error);
   }
   return ok(number);
 };

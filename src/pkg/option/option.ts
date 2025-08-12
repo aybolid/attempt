@@ -1,11 +1,15 @@
 import type { Nullable } from "@/internal/types";
-import { Err, Ok, type Result } from "../result";
+import { Err, Ok, type IntoResult, type Result } from "../result";
 import { isNullable } from "@/internal/utils";
 
 /** Represents an optional value. */
 export type Option<T> = Some<T> | None;
 
 export namespace Option {
+  export function from<T>(convertable: IntoOption<T>): Option<T> {
+    return convertable.intoOption();
+  }
+
   /**
    * Converts a nullable value (`null` or `undefined`) into an `Option`.
    *
@@ -42,16 +46,20 @@ export namespace Option {
 
 type OptionGenerator<T> = Generator<None, T>;
 
+export interface IntoOption<T> {
+  intoOption(): Option<T>;
+}
+
 /**
  * Common interface for Option-like types.
  * Inspired by Rust's `Option<T>`.
  */
-interface OptionLike<T> extends Iterable<None, T> {
+interface OptionLike<T> extends Iterable<None, T>, IntoResult<T, Error> {
   /**
    * Returns `true` if this is a `Some` value.
    *
    * @example
-   * new Some(5).isSome(); // true
+   * new Some(5).isSome();   // true
    * None.instance.isSome(); // false
    */
   isSome(): this is Some<T>;
@@ -60,7 +68,7 @@ interface OptionLike<T> extends Iterable<None, T> {
    * Returns `true` if this is `None`.
    *
    * @example
-   * new Some(5).isNone(); // false
+   * new Some(5).isNone();   // false
    * None.instance.isNone(); // true
    */
   isNone(): this is None;
@@ -332,6 +340,10 @@ export class Some<T> implements OptionLike<T> {
     }
   }
 
+  intoResult(): Ok<T, never> {
+    return new Ok(this.#value);
+  }
+
   *[Symbol.iterator](): OptionGenerator<T> {
     return this.#value;
   }
@@ -430,6 +442,10 @@ export class None implements OptionLike<never> {
 
   toString(): string {
     return None._tag;
+  }
+
+  intoResult(): Err<never, Error> {
+    return new Err(new Error("No value"));
   }
 
   *[Symbol.iterator](): OptionGenerator<never> {
