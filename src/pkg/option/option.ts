@@ -204,7 +204,7 @@ export class OptionError extends Error {
  * some.unwrap(); // 42
  */
 export class Some<T> implements OptionLike<T> {
-  static readonly _tag = "Some";
+  static readonly _tag = "Some" as const;
 
   readonly #value: T;
 
@@ -313,7 +313,7 @@ export class Some<T> implements OptionLike<T> {
  * console.log(none.isNone()); // true
  */
 export class None implements OptionLike<never> {
-  static readonly _tag = "None";
+  static readonly _tag = "None" as const;
 
   /** Singleton instance of `None`. */
   static readonly instance = new None();
