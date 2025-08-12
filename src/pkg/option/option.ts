@@ -5,18 +5,24 @@ import { Err, Ok, type Result } from "../result";
 
 import * as utils from "./utils";
 
-export type Option<T> = Some<T> | None;
+export type Option<T extends NonNullable<unknown>> = Some<T> | None;
 
 export namespace Option {
   export const some = utils.some;
   export const none = utils.none;
 
-  export function from<T>(convertable: IntoOption<T>): Option<T> {
+  export function from<T extends NonNullable<unknown>>(
+    convertable: IntoOption<T>,
+  ): Option<T> {
     return convertable.intoOption();
   }
 
-  export function fromNullable<T>(value: Nullable<T>): Option<T> {
-    return isNullable(value) ? None.instance : new Some(value);
+  export function fromNullable<T extends Nullable<unknown>>(
+    value: T,
+  ): Option<NonNullable<T>> {
+    return isNullable(value)
+      ? None.instance
+      : new Some(value as NonNullable<T>);
   }
 
   export function fromPredicate<T extends NonNullable<unknown>>(
@@ -29,11 +35,11 @@ export namespace Option {
 
 type OptionGenerator<T> = Generator<None, T>;
 
-export interface IntoOption<T> {
+export interface IntoOption<T extends NonNullable<unknown>> {
   intoOption(): Option<T>;
 }
 
-interface OptionLike<T> extends Iterable<None, T> {
+interface OptionLike<T extends NonNullable<unknown>> extends Iterable<None, T> {
   isSome(): this is Some<T>;
 
   isNone(): this is None;
@@ -50,7 +56,7 @@ interface OptionLike<T> extends Iterable<None, T> {
 
   unwrapOrElse(fn: () => T): T;
 
-  map<U>(fn: (value: T) => U): Option<U>;
+  map<U extends NonNullable<unknown>>(fn: (value: T) => U): Option<U>;
 
   mapOr<U>(defaultValue: U, fn: (value: T) => U): U;
 
@@ -62,9 +68,11 @@ interface OptionLike<T> extends Iterable<None, T> {
 
   filter(predicate: (value: T) => boolean): Option<T>;
 
-  and<U>(other: Option<U>): Option<U>;
+  and<U extends NonNullable<unknown>>(other: Option<U>): Option<U>;
 
-  andThen<U>(fn: (value: T) => Option<U>): Option<U>;
+  andThen<U extends NonNullable<unknown>>(
+    fn: (value: T) => Option<U>,
+  ): Option<U>;
 
   or(other: Option<T>): Option<T>;
 
@@ -83,7 +91,7 @@ export class OptionError extends Error {
   }
 }
 
-export class Some<T> implements OptionLike<T> {
+export class Some<T extends NonNullable<unknown>> implements OptionLike<T> {
   static readonly _tag = "Some" as const;
 
   readonly #value: T;
@@ -124,7 +132,7 @@ export class Some<T> implements OptionLike<T> {
     return this.#value;
   }
 
-  map<U>(fn: (value: T) => U): Option<U> {
+  map<U extends NonNullable<unknown>>(fn: (value: T) => U): Option<U> {
     return new Some(fn(this.#value));
   }
 
@@ -144,11 +152,13 @@ export class Some<T> implements OptionLike<T> {
     return new Ok(this.#value);
   }
 
-  and<U>(other: Option<U>): Option<U> {
+  and<U extends NonNullable<unknown>>(other: Option<U>): Option<U> {
     return other;
   }
 
-  andThen<U>(fn: (value: T) => Option<U>): Option<U> {
+  andThen<U extends NonNullable<unknown>>(
+    fn: (value: T) => Option<U>,
+  ): Option<U> {
     return fn(this.#value);
   }
 
@@ -219,7 +229,7 @@ export class None implements OptionLike<never> {
     return fn();
   }
 
-  map<U>(_: (_: never) => U): this {
+  map<U extends NonNullable<unknown>>(_: (_: never) => U): this {
     return this;
   }
 
@@ -239,11 +249,11 @@ export class None implements OptionLike<never> {
     return new Err(fn());
   }
 
-  and<U>(_: Option<U>): this {
+  and<U extends NonNullable<unknown>>(_: Option<U>): this {
     return this;
   }
 
-  andThen<U>(_: (_: never) => Option<U>): this {
+  andThen<U extends NonNullable<unknown>>(_: (_: never) => Option<U>): this {
     return this;
   }
 
@@ -251,11 +261,11 @@ export class None implements OptionLike<never> {
     return this;
   }
 
-  or<T>(other: Option<T>): Option<T> {
+  or<T extends NonNullable<unknown>>(other: Option<T>): Option<T> {
     return other;
   }
 
-  orElse<T>(fn: () => Option<T>): Option<T> {
+  orElse<T extends NonNullable<unknown>>(fn: () => Option<T>): Option<T> {
     return fn();
   }
 

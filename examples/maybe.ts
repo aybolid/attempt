@@ -1,6 +1,6 @@
-import { match, type Option, none, some, $maybe } from "@/pkg";
+import { match, none, some, $maybe } from "@/pkg";
 
-const parseNumber = (input: string): Option<number> => {
+const parseNumber = (input: string) => {
   const number = parseInt(input, 10);
   if (isNaN(number)) {
     return none();

@@ -1,6 +1,6 @@
 import { None, Some } from "./option";
 
-export function some<T>(value: T): Some<T> {
+export function some<T extends NonNullable<unknown>>(value: T): Some<T> {
   return new Some(value);
 }
 
