@@ -1,6 +1,6 @@
-import { isNullable } from "@/internal/utils";
+import { isNullable, stringify } from "@/internal/utils";
 
-import { None, Some, type IntoOption, type Option } from "../option";
+import { None, Option, Some, type IntoOption } from "../option";
 
 import * as utils from "./utils";
 
@@ -40,7 +40,9 @@ export interface IntoResult<T, E> {
   intoResult(): Result<T, E>;
 }
 
-interface ResultLike<T, E> extends Iterable<Err<never, E>, T>, IntoOption<T> {
+interface ResultLike<T, E>
+  extends Iterable<Err<never, E>, T>,
+    IntoOption<NonNullable<T>> {
   isOk(): this is Ok<T, E>;
 
   isErr(): this is Err<T, E>;
@@ -49,9 +51,9 @@ interface ResultLike<T, E> extends Iterable<Err<never, E>, T>, IntoOption<T> {
 
   isErrAnd(predicate: (error: E) => boolean): boolean;
 
-  ok(): Option<T>;
+  ok(): Option<NonNullable<T>>;
 
-  err(): Option<E>;
+  err(): Option<NonNullable<E>>;
 
   unwrap(): T;
 
@@ -114,8 +116,8 @@ export class Ok<T, E> implements ResultLike<T, E> {
     return false;
   }
 
-  ok(): Some<T> {
-    return new Some(this.#value);
+  ok(): Option<NonNullable<T>> {
+    return Option.fromNullable(this.#value);
   }
 
   err(): None {
@@ -177,15 +179,11 @@ export class Ok<T, E> implements ResultLike<T, E> {
   }
 
   toString(): string {
-    try {
-      return `${Ok._tag}(${JSON.stringify(this.#value)})`;
-    } catch {
-      return `${Ok._tag}(<non-serializable>)`;
-    }
+    return `${Ok._tag}(${stringify(this.#value)})`;
   }
 
-  intoOption(): Some<T> {
-    return new Some(this.#value);
+  intoOption(): Option<NonNullable<T>> {
+    return Option.fromNullable(this.#value);
   }
 
   *[Symbol.iterator](): ResultGenerator<T, never> {
@@ -221,8 +219,8 @@ export class Err<T, E> implements ResultLike<never, E> {
     return None.instance;
   }
 
-  err(): Some<E> {
-    return new Some(this.#value);
+  err(): Option<NonNullable<E>> {
+    return Option.fromNullable(this.#value);
   }
 
   unwrap(): never {
@@ -278,11 +276,7 @@ export class Err<T, E> implements ResultLike<never, E> {
   }
 
   toString(): string {
-    try {
-      return `${Err._tag}(${JSON.stringify(this.#value)})`;
-    } catch {
-      return `${Err._tag}(<non-serializable>)`;
-    }
+    return `${Err._tag}(${stringify(this.#value)})`;
   }
 
   intoOption(): None {

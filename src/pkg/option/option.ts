@@ -1,5 +1,5 @@
 import type { Nullable } from "@/internal/types";
-import { isNullable } from "@/internal/utils";
+import { isNullable, stringify } from "@/internal/utils";
 
 import { Err, Ok, type Result } from "../result";
 
@@ -179,11 +179,7 @@ export class Some<T extends NonNullable<unknown>> implements OptionLike<T> {
   }
 
   toString(): string {
-    try {
-      return `${Some._tag}(${JSON.stringify(this.#value)})`;
-    } catch {
-      return `${Some._tag}(<non-serializable>)`;
-    }
+    return `${Some._tag}(${stringify(this.#value)})`;
   }
 
   *[Symbol.iterator](): OptionGenerator<T> {
