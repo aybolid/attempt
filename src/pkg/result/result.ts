@@ -16,6 +16,15 @@ export namespace Result {
     return convertable.intoResult();
   }
 
+  export async function fromPromise<T, E>(
+    promise: Promise<T>,
+    errorMapper: (e: unknown) => E,
+  ): AsyncResult<T, E> {
+    return promise
+      .then((value) => new Ok(value))
+      .catch((e) => new Err(errorMapper(e)));
+  }
+
   export function fromThrowable<
     Fn extends (...args: readonly unknown[]) => unknown,
     E,

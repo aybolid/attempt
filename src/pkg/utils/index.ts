@@ -6,13 +6,13 @@ export function match<T, E, U>(
   body: { Ok: (value: T) => U; Err: (errorValue: E) => U },
 ): U;
 
-export function match<T, U>(
+export function match<T extends NonNullable<unknown>, U>(
   option: Option<T>,
   body: { Some: (value: T) => U; None: () => U },
 ): U;
 
 export function match<T, E, U>(
-  value: Result<T, E> | Option<T>,
+  value: Result<T, E> | Option<NonNullable<T>>,
   body:
     | { Ok: (value: T) => U; Err: (errorValue: E) => U }
     | { Some: (value: T) => U; None: () => U },
