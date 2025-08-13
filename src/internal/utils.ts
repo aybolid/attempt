@@ -19,7 +19,11 @@ export function stringify(value: unknown): string {
   }
 
   try {
-    return JSON.stringify(value);
+    const string = JSON.stringify(value);
+    if (string === undefined) {
+      return "<non-serializable>";
+    }
+    return string;
   } catch {
     return "<non-serializable>";
   }
