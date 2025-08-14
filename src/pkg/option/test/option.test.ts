@@ -406,3 +406,22 @@ describe("transform", () => {
     expect(someBranch).not.toBeCalled();
   });
 });
+
+describe("utils", () => {
+  test(`${Some.name}.${Some.prototype.toJSON.name} should return contained value`, () => {
+    const obj = { name: "string", age: 13, data: null };
+    const opt = some(obj);
+    const result = opt.toJSON();
+    expect(result).toBe(obj);
+  });
+  test(`${None.name}.${None.prototype.toJSON.name} should return null`, () => {
+    const opt = none();
+    const result = opt.toJSON();
+    expect(result).toBeNull();
+  });
+  test("JSON.stringify should return JSON representation of the options", () => {
+    const obj = { some: some(13), none: none() };
+    const result = JSON.stringify(obj);
+    expect(result).toEqual(JSON.stringify({ some: 13, none: null }));
+  });
+});

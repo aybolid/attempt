@@ -76,6 +76,8 @@ interface OptionLike<T extends NonNullable<unknown>> extends Iterable<None, T> {
   match<U>(body: { Some: (value: T) => U; None: () => U }): U;
 
   toString(): string;
+
+  toJSON(): T | null;
 }
 
 export class OptionError extends Error {
@@ -177,6 +179,10 @@ export class Some<T extends NonNullable<unknown>> implements OptionLike<T> {
     return `${Some._tag}(${stringify(this.#value)})`;
   }
 
+  toJSON(): T {
+    return this.#value;
+  }
+
   *[Symbol.iterator](): OptionGenerator<T> {
     return this.#value;
   }
@@ -266,6 +272,10 @@ export class None implements OptionLike<never> {
 
   toString(): string {
     return None._tag;
+  }
+
+  toJSON(): null {
+    return null;
   }
 
   *[Symbol.iterator](): OptionGenerator<never> {
