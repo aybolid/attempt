@@ -3,14 +3,9 @@ import { isNullable, stringify } from "@/internal/utils";
 
 import { Err, Ok, type Result } from "../result";
 
-import * as utils from "./utils";
-
 export type Option<T extends NonNullable<unknown>> = Some<T> | None;
 
 export namespace Option {
-  export const some = utils.some;
-  export const none = utils.none;
-
   export function from<T extends NonNullable<unknown>>(
     convertable: IntoOption<T>,
   ): Option<T> {

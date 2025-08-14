@@ -2,16 +2,11 @@ import { isNullable, stringify } from "@/internal/utils";
 
 import { None, Option, Some, type IntoOption } from "../option";
 
-import * as utils from "./utils";
-
 export type Result<T, E = Error> = Ok<T, E> | Err<T, E>;
 
 export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
 export namespace Result {
-  export const ok = utils.ok;
-  export const err = utils.err;
-
   export function from<T, E>(convertable: IntoResult<T, E>): Result<T, E> {
     return convertable.intoResult();
   }

@@ -1,7 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
 
 import { $maybe } from "../$maybe";
-import { None, Option, Some } from "../option";
+import { None, Some } from "../option";
+import { none, some } from "../utils";
 
 const expectNoneSingleton = (value: unknown) => {
   expect(value).toBeInstanceOf(None);
@@ -16,13 +17,13 @@ const expectSome = (value: unknown, expectedValue: unknown) => {
 describe("sync", () => {
   test(`${$maybe.name} should return ${Some.name} for generator returning ${Some.name}`, () => {
     const opt = $maybe(function* () {
-      return Option.some(20);
+      return some(20);
     });
     expectSome(opt, 20);
   });
   test(`${$maybe.name} should return ${None.name} for generator returning ${None.name}`, () => {
     const opt = $maybe(function* () {
-      return Option.none();
+      return none();
     });
     expectNoneSingleton(opt);
   });
@@ -31,7 +32,7 @@ describe("sync", () => {
 describe("async", () => {
   test(`${$maybe.name} should return Promise<${Some.name}> for async generator returning ${Some.name}`, async () => {
     const result = $maybe(async function* () {
-      return Option.some(42);
+      return some(42);
     });
 
     expect(result).toBeInstanceOf(Promise);
@@ -41,7 +42,7 @@ describe("async", () => {
 
   test(`${$maybe.name} should return Promise<${None.name}> for async generator returning ${None.name}`, async () => {
     const result = $maybe(async function* () {
-      return Option.none();
+      return none();
     });
 
     expect(result).toBeInstanceOf(Promise);
@@ -54,7 +55,7 @@ describe("async", () => {
 
     const result = $maybe(async function* () {
       const value = await asyncOperation();
-      return Option.some(value * 2);
+      return some(value * 2);
     });
 
     const opt = await result;
@@ -65,9 +66,9 @@ describe("async", () => {
 describe("chaining / composition", () => {
   test(`${$maybe.name} should handle multiple yields with ${Some.name} values`, () => {
     const opt = $maybe(function* () {
-      const a = yield* Option.some(10);
-      const b = yield* Option.some(20);
-      return Option.some(a + b);
+      const a = yield* some(10);
+      const b = yield* some(20);
+      return some(a + b);
     });
 
     expectSome(opt, 30);
@@ -77,11 +78,11 @@ describe("chaining / composition", () => {
     const laterFn = vi.fn();
 
     const opt = $maybe(function* () {
-      const a = yield* Option.some(10);
-      const b = yield* Option.none();
+      const a = yield* some(10);
+      const b = yield* none();
       laterFn();
-      const c = yield* Option.some(30);
-      return Option.some(a + b + c);
+      const c = yield* some(30);
+      return some(a + b + c);
     });
 
     expectNoneSingleton(opt);
@@ -90,12 +91,12 @@ describe("chaining / composition", () => {
 
   test(`${$maybe.name} should handle nested ${$maybe.name} calls`, () => {
     const inner = $maybe(function* () {
-      return Option.some(42);
+      return some(42);
     });
 
     const outer = $maybe(function* () {
       const value = yield* inner;
-      return Option.some(value * 2);
+      return some(value * 2);
     });
 
     expectSome(outer, 84);
