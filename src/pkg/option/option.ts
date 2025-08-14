@@ -322,6 +322,7 @@ export class OptionError extends Error {
   }
 }
 
+/** Represents a value that is present. */
 export class Some<T extends NonNullable<unknown>> implements OptionLike<T> {
   static readonly _tag = "Some" as const;
 
@@ -422,6 +423,12 @@ export class Some<T extends NonNullable<unknown>> implements OptionLike<T> {
   }
 }
 
+/** Singleton that represents an absence of a value.
+ *
+ * Constructor is private to prevent instantiation.
+ *
+ * Use `None.instance` to obtain an instance.
+ */
 export class None implements OptionLike<never> {
   static readonly _tag = "None" as const;
 
