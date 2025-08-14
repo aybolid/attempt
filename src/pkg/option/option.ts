@@ -425,8 +425,6 @@ export class Some<T extends NonNullable<unknown>> implements OptionLike<T> {
 
 /** Singleton that represents an absence of a value.
  *
- * Constructor is private to prevent instantiation.
- *
  * Use `None.instance` to obtain an instance.
  */
 export class None implements OptionLike<never> {
