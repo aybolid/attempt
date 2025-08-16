@@ -18,8 +18,8 @@ export type AsyncResult<T, E = Error> = Promise<Result<T, E>>;
 
 export namespace Result {
   /** Creates a {@link Result} from a value that implements {@link IntoResult}. */
-  export function from<T, E>(convertible: IntoResult<T, E>): Result<T, E> {
-    return convertible.intoResult();
+  export function from<T, E>(convertable: IntoResult<T, E>): Result<T, E> {
+    return convertable.intoResult();
   }
 
   /**
