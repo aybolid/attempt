@@ -57,6 +57,10 @@ export namespace Result {
   ): (...args: Parameters<Fn>) => Result<ReturnType<Fn>>;
   export function fromThrowable<Fn extends (...args: readonly any[]) => any, E>(
     fn: Fn,
+    errorMapper: (e: unknown) => E,
+  ): (...args: Parameters<Fn>) => Result<ReturnType<Fn>, E>;
+  export function fromThrowable<Fn extends (...args: readonly any[]) => any, E>(
+    fn: Fn,
     errorMapper?: (e: unknown) => E,
   ): (...args: Parameters<Fn>) => Result<ReturnType<Fn>, E> {
     return (...args) => {
