@@ -3,11 +3,16 @@ import type { InferSomeTypes } from "@/internal/types";
 
 import type { None, Option } from "./option";
 
-/** Simplifies working with {@link Option} values using generator-based composition.
+/**
+ * Simplifies working with {@link Option} values using generator-based composition.
  *
  * Provides a convenient way to chain {@link Option} operations without explicit checks
  * or verbose unwrapping. Uses generator functions with `yield*` to automatically handle
  * short-circuiting when a {@link None} value is encountered.
+ *
+ * - Works with both synchronous and asynchronous generators.
+ * - If the generator is synchronous, returns a {@link Option}.
+ * - If the generator is asynchronous, returns an Promise<{@link Option}>.
  *
  * @example
  * function parseInteger(str: string): Option<number> { }
