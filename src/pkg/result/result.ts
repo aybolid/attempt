@@ -120,6 +120,9 @@ interface ResultLike<T, E>
   /** Returns the {@link Ok} value or throws a {@link ResultError}. */
   unwrap(): T;
 
+  /** Returns either {@link Ok} value or {@link Err} value. */
+  unwrapAny(): T | E;
+
   /** Returns the {@link Err} value or throws a {@link ResultError}. */
   unwrapErr(): E;
 
@@ -208,6 +211,10 @@ export class Ok<T, E> implements ResultLike<T, E> {
   }
 
   unwrap(): T {
+    return this.#value;
+  }
+
+  unwrapAny(): T {
     return this.#value;
   }
 
@@ -307,6 +314,10 @@ export class Err<T, E> implements ResultLike<never, E> {
 
   unwrap(): never {
     throw new ResultError(`Unwrapping value on ${this.toString()}`);
+  }
+
+  unwrapAny(): E {
+    return this.#value;
   }
 
   unwrapErr(): E {
