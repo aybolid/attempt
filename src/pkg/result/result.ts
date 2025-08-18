@@ -47,7 +47,47 @@ export namespace Result {
   }
 
   /**
-   * Wraps a function that may throw, converting its result into a {@link Result}.
+   * Wraps an async function that may throw, converting its result into an {@link AsyncResult}.
+   *
+   * If `errorMapper` is provided, it maps the thrown error to the expected error type.
+   * Defaults to {@link Error}.
+   */
+  export function fromAsyncThrowable<
+    Fn extends (...args: readonly any[]) => Promise<any>,
+  >(
+    fn: Fn,
+  ): (...args: Parameters<Fn>) => AsyncResult<Awaited<ReturnType<Fn>>, Error>;
+
+  export function fromAsyncThrowable<
+    Fn extends (...args: readonly any[]) => Promise<any>,
+    E,
+  >(
+    fn: Fn,
+    errorMapper: (e: unknown) => E,
+  ): (...args: Parameters<Fn>) => AsyncResult<Awaited<ReturnType<Fn>>, E>;
+
+  export function fromAsyncThrowable<
+    Fn extends (...args: readonly any[]) => Promise<any>,
+    E = Error,
+  >(
+    fn: Fn,
+    errorMapper?: (e: unknown) => E,
+  ): (...args: Parameters<Fn>) => AsyncResult<Awaited<ReturnType<Fn>>, E> {
+    return async (
+      ...args: Parameters<Fn>
+    ): Promise<Result<Awaited<ReturnType<Fn>>, E>> => {
+      try {
+        const result = await fn(...args);
+        return new Ok(result);
+      } catch (error) {
+        errorMapper ??= toError as (e: unknown) => E;
+        return new Err(errorMapper(error));
+      }
+    };
+  }
+
+  /**
+   * Wraps a sync function that may throw, converting its result into a {@link Result}.
    *
    * If `errorMapper` is provided, it maps the thrown error to the expected error type.
    * Defaults to {@link Error}.
